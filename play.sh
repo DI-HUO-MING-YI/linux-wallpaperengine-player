@@ -51,16 +51,52 @@ check_and_load_wallpaper() {
                 echo "加载壁纸: $id"
                 pgrep -f linux-wallpaperengine | xargs kill
 
-                linux-wallpaperengine \
-                    --scaling fill \
-                    --screen-root HDMI-A-1 \
-                    --screen-root eDP-1 \
-                    "$id" \
-                    --clamping border \
-                    --fps 240 \
-                    --volume 50 \
-                    >"$wallpaperengine_log_file" \
-                    2>&1 &
+                # linux-wallpaperengine \
+                #     --scaling fill \
+                #     --screen-root HDMI-A-1 \
+                #     --screen-root eDP-1 \
+                #     "$id" \
+                #     --clamping border \
+                #     --fps 240 \
+                #     --volume 50 \
+                #     >"$wallpaperengine_log_file" \
+                #     2>&1 &
+
+                # 构建linux-wallpaperengine命令
+                local command="linux-wallpaperengine"
+
+                # 添加可选参数
+                [[ -n "$silent" ]] && [[ "$silent" == true ]] && command+=" --silent"
+                [[ -n "$volume" ]] && command+=" --volume $volume"
+                [[ -n "$noautomute" ]] && [[ "$noautomute" == true ]] && command+=" --noautomute"
+                [[ -n "$no_audio_processing" ]] && [[ "$no_audio_processing" == true ]] && command+=" --no-audio-processing"
+
+                if [[ -n "${#screen_root[@]}" ]] && [[ "${#screen_root[@]}" -gt 0 ]]; then
+                    for sr in "${screen_root[@]}"; do
+                        command+=" --screen-root $sr"
+                    done
+                fi
+                [[ -n "$window" ]] && [[ "$window" == true ]] && command+=" --window"
+                [[ -n "$fps" ]] && command+=" --fps $fps"
+                [[ -n "$assets_dir" ]] && command+=" --assets-dir $assets_dir"
+                [[ -n "$screenshot" ]] && [[ "$screenshot" == true ]] && command+=" --screenshot"
+                [[ -n "$list_propertites" ]] && [[ "$list_propertites" == true ]] && command+=" --list-propertites"
+
+                if [[ -n "$set_property" ]] && [[ "${#set_property[@]}" -gt 0 ]]; then
+                    for sr in "${set_property[@]}"; do
+                        command+=" --set-property $sr"
+                    done
+                fi
+                [[ -n "$no_fullscreen_pause" ]] && [[ "$no_fullscreen_pause" == true ]] && command+=" --no-fullscreen-pause"
+                [[ -n "$disable_mouse" ]] && [[ "$disable_mouse" == true ]] && command+=" --disable-mouse"
+                [[ -n "$scaling" ]] && command+=" --scaling $scaling"
+                [[ -n "$clamping" ]] && command+=" --clamping $clamping"
+                
+                command+=" \"$id\""
+
+                echo "执行命令: $command"
+                # 执行命令
+                eval "$command > \"$wallpaperengine_log_file\" 2>&1 &"
 
                 sleep 2
                 sleep "$interval"
