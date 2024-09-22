@@ -19,7 +19,7 @@ echo "使用的配置文件: $config_file"
 source "$config_file"
 
 # 检查配置文件中的必需参数
-if [ -z "$id_file" ] || [ -z "$wallpaper_dir" ] || [ -z "$mode" ] || [ -z "$interval" ] || [ -z "$log_file" ] || [ -z "$wallpaperengine_log_file" ]; then
+if [ -z "$id_file" ] || [ -z "$wallpaper_dir" ] || [ -z "$mode" ] || [ -z "$interval" ] || [ -z "$log_file" ] || [ -z "$wallpaperengine_log_file" ] ; then
     echo "请确保配置文件中的所有参数都已设置。"
     exit 1
 fi
@@ -75,22 +75,43 @@ check_and_load_wallpaper() {
     fi
 }
 
+# 保存当前ID到配置文件
+save_current_wallpaper_id() {
+    sed -i "s/^current_wallpaper_id=.*/current_wallpaper_id=$current_wallpaper_id/" "$config_file"
+}
+
 # 开始循环
 while true; do
     if [ "$mode" -eq 1 ]; then
         # 顺序播放
+        found_current=false
         for id in "${ids[@]}"; do
+            if [ "$found_current" = false ]; then
+                if [ "$id" = "$current_wallpaper_id" ]; then
+                    found_current=true
+                fi
+                continue
+            fi
+            current_wallpaper_id="$id"
             check_and_load_wallpaper "$id"
+            save_current_wallpaper_id
         done
+        # 播放到结尾后从头开始
+        current_wallpaper_id="${ids[0]}"
+        save_current_wallpaper_id
     elif [ "$mode" -eq 2 ]; then
         # 随机播放
         id="${ids[RANDOM % ${#ids[@]}]}"
+        current_wallpaper_id="$id"
         check_and_load_wallpaper "$id"
+        save_current_wallpaper_id
     elif [ "$mode" -eq 3 ]; then
         # 随机不重复播放
         shuffled_ids=($(shuf -e "${ids[@]}"))
         for id in "${shuffled_ids[@]}"; do
+            current_wallpaper_id="$id"
             check_and_load_wallpaper "$id"
+            save_current_wallpaper_id
         done
     else
         echo "无效模式。请选择 1 (顺序播放)，2 (随机)，或 3 (随机不重复)。"
