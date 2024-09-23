@@ -38,7 +38,7 @@ jq -c '.Narci.general.browser.folders[]' "$json_file" | while read -r folder; do
             combined_title="${title}_${subfolder_title}"
 
             # 创建以合并后的 title 命名的文件
-            subfile_name="${combined_title}.txt"
+            subfile_name="${combined_title}.ids"
             touch "$subfile_name"
 
             # 提取 subfolder items 中的所有键，写入文件
