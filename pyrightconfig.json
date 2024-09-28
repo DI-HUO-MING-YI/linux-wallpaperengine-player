@@ -1,0 +1,10 @@
+{
+  "typeCheckingMode": "basic",
+  "exclude": [
+    "node_modules",
+    "**/__pycache__"
+  ],
+  "include": [
+    "py/*.py"
+  ]
+}

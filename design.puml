@@ -1,0 +1,97 @@
+@startuml
+start
+
+:install steam and wallpaperengine;
+:install linux-wallpaperengine and make share it works well;
+:get path to wallpaperengine's location;
+note right
+default path is :
+~/.local/share/Steam/steamapps/common/wallpaper_engine/
+end note
+
+:get path to wallpaperengine's workshop items location;
+note right
+default path is 
+~/.local/share/Steam/steamapps/workshop/content/431960/
+end note
+
+:get path to linux-wallpaperengine-player;
+note right
+default path is 
+~/.config/wallpaperengine/
+end note
+
+
+:run wallpaperengine with pronton;
+note right
+wallpaperengine can open the window,
+but can not set background wallpaper.
+end note
+
+:get wallpapers that you want play from workshop
+and put all of them to custom folders;
+note right
+Do not name with the suffix "_checked"
+end note
+
+:close wallpaperengine in steam! IMPORTANT!;
+:(optional)change the config.conf as you want;
+
+:run check.py;
+note right
+This script will read config.json file from wallpaperengine path,
+and read all folders not named with the suffix "_checked", 
+then create new folders named with the suffix "_checked",
+all checked wallpaper will be stored in thoes new floders.
+Backup file will be stored in the player path.
+end note
+
+repeat
+
+:print current id in cosole;
+:play the current wallpaper in your background;
+switch (wait for your input)
+case ('y')
+  :mark current wallpaper as workable;
+case ('n')
+  :mark current wallpaper as skip;
+case (blank or any other key)
+  :wait for checking next time;
+endswitch
+
+repeat while(has next id?)
+
+:reopen wallpaperengine;
+:now some floders named with the suffix "_checked" will be created;
+
+note right
+Just use the checked folders to setup playlist.
+DO NOT put new wallpapers in those folders,
+because all of those folders will not be checked again.
+All checked wallpaper ids will be stroed in checked_ids file in player path.
+DO NOT remove the checked_ids file, 
+If you add a new wallpaper, just put in a folder and rerun check.py.
+If you want recheck all wallpapers,
+you should remove the checked_ids file and all checked folders.
+end note
+
+:set playlist in the wallpaperengine window using checked floders;
+:save playlist; 
+note right
+All settings in wallpaperengine will be stroed in the config.json
+end note
+
+:run play.py <playlist_name>;
+note right
+This script will use the same name playlist from wallpaperengine.
+And now not all configs in playlist are supported.
+support configs: change mode/delay/order 
+
+More change mode and order options are supported,
+you can use config.conf to get more info.
+end note
+
+
+stop
+
+@enduml

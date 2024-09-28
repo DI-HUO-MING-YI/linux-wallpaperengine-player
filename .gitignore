@@ -2,3 +2,4 @@ debug.log
 linux-wallpaperengine.log
 linux-wallpaperengine.log_in_HDMI-A-1
 linux-wallpaperengine.log_in_eDP-1
+py/__pycache__

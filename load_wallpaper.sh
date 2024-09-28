@@ -44,8 +44,7 @@ load_wallpaper() {
   local id="$1"
 
   if [ -d "$wallpaper_dir/$id" ]; then
-    pgrep -f linux-wallpaperengine | xargs kill
-    sleep 1
+    ps aux | grep "linux-wallpaperengine" | grep -v "grep" | awk '{print $2}' | xargs kill -9
     echo "加载壁纸: $id"
 
     # 构建linux-wallpaperengine命令
