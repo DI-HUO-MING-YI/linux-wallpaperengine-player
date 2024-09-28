@@ -1,9 +1,4 @@
 {
-  "exclude": [
-    "node_modules",
-    "**/__pycache__"
-  ],
-  "include": [
-    "py/*.py"
-  ]
+  "exclude": ["node_modules", "**/__pycache__"],
+  "include": ["src/py/*.py"]
 }
