@@ -4,7 +4,9 @@ import argparse
 import json
 import logging
 import os
+import random
 import shutil
+import time
 from typing import Any, cast
 
 from helper import GlobalConfig, read_config
@@ -21,8 +23,11 @@ SKIPPED_SUFFIX = "_skipped"
 
 type Item = dict[str, int]
 type Folder = dict[str, Item | list[Folder] | str]
+type Settings = dict[str, int | str | bool]
+type PlayList = dict[str, str | Settings | list[str]]
+type PlayLists = list[PlayList]
 type Browser = dict[str, list[Folder]]
-type General = dict[str, Browser]
+type General = dict[str, Browser | PlayLists]
 type Steamuser = dict[str, General]
 type WallpaperengineConfig = dict[str, str | Steamuser]
 
@@ -71,13 +76,18 @@ def get_wallpaperengine_config(
 
 
 def get_floders(wallpaperengine_config: WallpaperengineConfig) -> list[Folder]:
-    folders = (
-        cast(Steamuser, wallpaperengine_config.get("steamuser", {}))
-        .get("general", {})
-        .get("browser", {})
-        .get("folders", [])
+    general = cast(Steamuser, wallpaperengine_config.get("steamuser", {})).get(
+        "general", {}
     )
+    folders = cast(Browser, general.get("browser", {})).get("folders", [])
     return folders
+
+
+def get_play_lists(wallpaperengine_config: WallpaperengineConfig) -> PlayLists:
+    general = cast(Steamuser, wallpaperengine_config.get("steamuser", {})).get(
+        "general", {}
+    )
+    return cast(PlayLists, general.get("playlists", {}))
 
 
 def should_picked(
@@ -257,8 +267,57 @@ def check(GLOBAL_CONFIG: GlobalConfig):
     logging.info("Checked all items")
 
 
-def play():
-    logging.info("play")
+def get_wallpaper_id(item: str) -> str:
+    return os.path.basename(os.path.dirname(item))
+
+
+def play_by_timer(
+    GLOBAL_CONFIG: GlobalConfig, items: list[str], settings: Settings
+) -> None:
+    delay = cast(int, settings.get("delay"))
+    order = cast(str, settings.get("order"))
+    wallpaper_ids = list(map(get_wallpaper_id, items))
+    if order == "random":
+        random.shuffle(wallpaper_ids)
+
+    for wallpaper_id in wallpaper_ids:
+        wallpaper_dir = os.path.expanduser(GLOBAL_CONFIG.wallpaperengine.wallpaper_dir)
+        item_dir = os.path.join(wallpaper_dir, wallpaper_id)
+        item_project_path = os.path.join(item_dir, "project.json")
+        if not os.path.exists(item_dir) and not os.path.exists(item_project_path):
+            logging.info(f"wallpaper {wallpaper_id} not found.")
+            continue
+
+        load_wallpaper(
+            wallpaper_id,
+            wallpaper_dir,
+            GLOBAL_CONFIG.player.wallpaperengine_log_file,
+            GLOBAL_CONFIG.linux_wallpaperengine,
+        )
+
+        time.sleep(delay * 60)
+
+
+def play(GLOBAL_CONFIG: GlobalConfig, play_list_name: str):
+    logging.info("play wallpaper list new")
+    wallpaperengine_config_path = (
+        GLOBAL_CONFIG.wallpaperengine.wallpaperengine_config_file
+    )
+
+    wallpaperengine_config = get_wallpaperengine_config(wallpaperengine_config_path)
+    play_lists = get_play_lists(wallpaperengine_config)
+    play_list = next(
+        (p for p in play_lists if cast(str, p.get("name")) == play_list_name), None
+    )
+    if play_list is None:
+        logging.error(f"No such playlist named {play_list_name}")
+        exit(1)
+
+    items = cast(list[str], play_list.get("items"))
+    settings = cast(Settings, play_list.get("settings"))
+    mode = settings.get("mode")
+    if mode == "timer":
+        play_by_timer(GLOBAL_CONFIG, items, settings)
 
 
 def main():
@@ -272,6 +331,7 @@ def main():
     )
     _ = group.add_argument("--play", action="store_true", help="Execute play function")
     _ = parser.add_argument("--config", type=str, help="Config file path")
+    _ = parser.add_argument("--playlist", type=str, help="Config file path")
 
     args = parser.parse_args()
     GLOBAL_CONFIG = read_config(args.config)
@@ -279,7 +339,7 @@ def main():
     if args.check:
         check(GLOBAL_CONFIG)
     elif args.play:
-        play()
+        play(GLOBAL_CONFIG, args.playlist)
     return
 
 
