@@ -2,15 +2,21 @@
 
 import argparse
 import json
+import logging
 import os
 import shutil
 from typing import Any, cast
 
-from helper import GlobalConfig, read_config, setup_logging
-from linux_wallpaperengine import kill_wallpaperengine, load_wallpaper
+from helper import GlobalConfig, read_config
+from linux_wallpaperengine import kill_wallpaperengine_process, load_wallpaper
+
+logging.basicConfig(
+    level=logging.DEBUG,  # 确保设置的日志级别能够打印INFO消息
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 GLOBAL_CONFIG: GlobalConfig | None = None
-CHECKED_SUFFIX = "_checked"
+PICKED_SUFFIX = "_picked"
 SKIPPED_SUFFIX = "_skipped"
 
 type Item = dict[str, int]
@@ -23,7 +29,7 @@ type WallpaperengineConfig = dict[str, str | Steamuser]
 
 def get_reslut_folders(title: str, folders: list[Folder]) -> list[Folder]:
     result: list[Folder] = []
-    for suffix in [CHECKED_SUFFIX, SKIPPED_SUFFIX]:
+    for suffix in [PICKED_SUFFIX, SKIPPED_SUFFIX]:
         exsit_folder = next(
             (f for f in folders if f.get("title") == title + suffix),
             None,
@@ -44,7 +50,7 @@ def get_reslut_folders(title: str, folders: list[Folder]) -> list[Folder]:
 
 def is_generate_floder(floder: dict[str, Any]) -> bool:
     title: str = floder.get("title", "")
-    return title.endswith("_checked") or title.endswith("_skipped")
+    return title.endswith(PICKED_SUFFIX) or title.endswith(SKIPPED_SUFFIX)
 
 
 def backup_wallpaperengine_config(config_path: str):
@@ -52,42 +58,153 @@ def backup_wallpaperengine_config(config_path: str):
     shutil.copy(config_path, os.path.expanduser(backup_path))
 
 
-def check(GLOBAL_CONFIG):
-    if GLOBAL_CONFIG is None:
-        print("Config is not setup!")
-        return
-
-    print("start check")
-
-    wallpaperengine_config_path = (
-        GLOBAL_CONFIG.wallpaperengine.wallpaperengine_config_file
-    )
-    backup_wallpaperengine_config(os.path.expanduser(wallpaperengine_config_path))
-
-    wallpaperengine_config = {}
-
+def get_wallpaperengine_config(
+    wallpaperengine_config_path: str,
+) -> WallpaperengineConfig:
     with open(
         os.path.expanduser(wallpaperengine_config_path), "r"
     ) as wallpaperengine_config_file:
         wallpaperengine_config: WallpaperengineConfig = json.load(
             wallpaperengine_config_file
         )
-    # get json data steamuser.general.browser.floders
+        return wallpaperengine_config
+
+
+def get_floders(wallpaperengine_config: WallpaperengineConfig) -> list[Folder]:
     folders = (
         cast(Steamuser, wallpaperengine_config.get("steamuser", {}))
         .get("general", {})
         .get("browser", {})
         .get("folders", [])
     )
-    # folders = [f for f in folders if not (is_generate_floder(f))]
+    return folders
 
+
+def should_picked(
+    GLOBAL_CONFIG: GlobalConfig, type: str | None, wallpaper_id: str
+) -> bool:
+    logging.info(
+        f"Test if should picked: {GLOBAL_CONFIG.player.picked_types}, {type}, {wallpaper_id}"
+    )
+    if type is None:
+        return False
+    picked_types = GLOBAL_CONFIG.player.picked_types
+    if picked_types is not None and picked_types.__contains__(type.lower()):
+        logging.info(f"Picked wallpaper {wallpaper_id} by picked_types config item.")
+        return True
+    return False
+
+
+def should_skip(
+    GLOBAL_CONFIG: GlobalConfig, type: str | None, wallpaper_id: str
+) -> bool:
+    if type is None:
+        return False
+    skipped_types = GLOBAL_CONFIG.player.skipped_types
+    if skipped_types is not None and skipped_types.__contains__(type.lower()):
+        logging.info(f"Skipped wallpaper {wallpaper_id} by skipped_types config item.")
+        return True
+    return False
+
+
+def check_items(
+    GLOBAL_CONFIG: GlobalConfig,
+    picked_folder: Folder,
+    skipped_folder: Folder,
+    folder: Folder,
+    item: Item,
+    wallpaperengine_config: WallpaperengineConfig,
+    wallpaperengine_config_path: str,
+):
+    wallpaper_ids = item.copy().items()
+    for wallpaper_id, _ in wallpaper_ids:
+        logging.info(f"处理项: {wallpaper_id}")
+        # 检查 ID 对应的目录是否存在
+        wallpaper_dir = os.path.expanduser(GLOBAL_CONFIG.wallpaperengine.wallpaper_dir)
+        item_dir = os.path.join(wallpaper_dir, wallpaper_id)
+        item_project_path = os.path.join(item_dir, "project.json")
+        if not os.path.exists(item_dir) and not os.path.exists(item_project_path):
+            logging.info(f"wallpaper {wallpaper_id} not found.")
+            continue
+
+        with open(item_project_path, "r") as item_project_file:
+            project_json: dict[str, str] = json.load(item_project_file)
+            type = project_json.get("type")
+
+        if should_skip(GLOBAL_CONFIG, type, wallpaper_id):
+            continue
+
+        if should_picked(GLOBAL_CONFIG, type, wallpaper_id):
+            move_to_folder(
+                folder,
+                picked_folder,
+                wallpaper_id,
+                wallpaperengine_config_path,
+                wallpaperengine_config,
+            )
+            continue
+
+        load_wallpaper(
+            wallpaper_id,
+            wallpaper_dir,
+            GLOBAL_CONFIG.player.wallpaperengine_log_file,
+            GLOBAL_CONFIG.linux_wallpaperengine,
+        )
+
+        while True:
+            user_input = input("是否添加到新项? (y/n): ").strip().lower()
+            if user_input in ["y", "n", ""]:
+                break
+            logging.info("无效输入，请输入 'y' 或 'n' 或者直接回车跳过")
+
+        if user_input == "y":
+            move_to_folder(
+                folder,
+                picked_folder,
+                wallpaper_id,
+                wallpaperengine_config_path,
+                wallpaperengine_config,
+            )
+        elif user_input == "n":
+            move_to_folder(
+                folder,
+                skipped_folder,
+                wallpaper_id,
+                wallpaperengine_config_path,
+                wallpaperengine_config,
+            )
+        else:
+            break
+
+
+def move_to_folder(
+    from_folder: Folder,
+    to_folder: Folder,
+    wallpaper_id: str,
+    wallpaperengine_config_path: str,
+    wallpaperengine_config: WallpaperengineConfig,
+):
+    cast(Item, to_folder["items"])[wallpaper_id] = 1
+    del cast(Item, from_folder["items"])[wallpaper_id]
+    with open(
+        os.path.expanduser(wallpaperengine_config_path), "w"
+    ) as wallpaperengine_config_file:
+        json.dump(wallpaperengine_config, wallpaperengine_config_file, indent=4)
+
+
+def check_folders(
+    GLOBAL_CONFIG: GlobalConfig,
+    folders: list[Folder],
+    wallpaperengine_config: WallpaperengineConfig,
+    wallpaperengine_config_path: str,
+):
     for folder in folders:
         if is_generate_floder(folder):
             continue
 
         title = folder.get("title")
         if title is None:
-            print(
+            logging.info(
                 f"Error when get folder title, please check your wallpaperengine config file.json data: {folder}"
             )
 
@@ -97,69 +214,51 @@ def check(GLOBAL_CONFIG):
             )
             if user_input in ["y", "n"]:
                 break
-            print("无效输入，请输入 'y' 或 'n' 或者直接回车跳过")
+            logging.info("无效输入，请输入 'y' 或 'n' 或者直接回车跳过")
 
         if user_input == "n":
             continue
 
-        checked_folder, skipped_folder = get_reslut_folders(cast(str, title), folders)
+        picked_folder, skipped_folder = get_reslut_folders(cast(str, title), folders)
 
         # 处理 items 中的每个 key
-        items = cast(Item, folder.get("items", {}))
-        based_items = items.copy()
-        for wallpaper_id in based_items.keys():
-            # 检查 ID 对应的目录是否存在
-            wallpaper_dir = os.path.expanduser(
-                GLOBAL_CONFIG.wallpaperengine.wallpaper_dir
-            )
-            item_dir = os.path.join(wallpaper_dir, wallpaper_id)
-            if not os.path.exists(item_dir):
-                continue  # 如果目录不存在，跳过此循环
+        item = cast(Item, folder.get("items", {}))
+        # based_items = items.copy()
+        check_items(
+            GLOBAL_CONFIG,
+            picked_folder,
+            skipped_folder,
+            folder,
+            item,
+            wallpaperengine_config,
+            wallpaperengine_config_path,
+        )
 
-            print(f"处理项: {wallpaper_id}")
-            wallpaper_path: str = os.path.join(wallpaper_dir, wallpaper_id)
-            if not os.path.isdir(wallpaper_path):
-                print(f"wallpaper {wallpaper_id} not found.")
-                continue
 
-            load_wallpaper(
-                wallpaper_id,
-                wallpaper_dir,
-                GLOBAL_CONFIG.player.wallpaperengine_log_file,
-                GLOBAL_CONFIG.linux_wallpaperengine,
-            )
+def check(GLOBAL_CONFIG: GlobalConfig):
+    logging.info("start check")
 
-            while True:
-                user_input = input("是否添加到新项? (y/n): ").strip().lower()
-                if user_input in ["y", "n", ""]:
-                    break
-                print("无效输入，请输入 'y' 或 'n' 或者直接回车跳过")
+    wallpaperengine_config_path = (
+        GLOBAL_CONFIG.wallpaperengine.wallpaperengine_config_file
+    )
 
-            if user_input == "y":
-                # 用户选择了 'y'，添加到新 folder 的 items 中
-                cast(Item, checked_folder["items"])[wallpaper_id] = 1
-                del cast(Item, folder["items"])[wallpaper_id]
-            elif user_input == "n":
-                # 用户选择了 'n'，在 id 末尾添加 #skipped
-                cast(Item, skipped_folder["items"])[wallpaper_id] = 1
-                del cast(Item, folder["items"])[wallpaper_id]
-            else:
-                # 用户未输入，直接跳过
-                break
-            with open(
-                os.path.expanduser(wallpaperengine_config_path), "w"
-            ) as wallpaperengine_config_file:
-                # 更新配置文件内容并写入
-                json.dump(
-                    wallpaperengine_config, wallpaperengine_config_file, indent=4
-                )  # 循环处理floders中的每一项
+    backup_wallpaperengine_config(os.path.expanduser(wallpaperengine_config_path))
 
-    kill_wallpaperengine()
-    print("Checked all items")
+    wallpaperengine_config = get_wallpaperengine_config(wallpaperengine_config_path)
+
+    folders = get_floders(wallpaperengine_config)
+
+    check_folders(
+        GLOBAL_CONFIG, folders, wallpaperengine_config, wallpaperengine_config_path
+    )
+
+    kill_wallpaperengine_process()
+
+    logging.info("Checked all items")
 
 
 def play():
-    print("play")
+    logging.info("play")
 
 
 def main():
@@ -176,7 +275,6 @@ def main():
 
     args = parser.parse_args()
     GLOBAL_CONFIG = read_config(args.config)
-    setup_logging(GLOBAL_CONFIG.player.log_file)
 
     if args.check:
         check(GLOBAL_CONFIG)

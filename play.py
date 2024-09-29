@@ -28,5 +28,5 @@ while True:
             load_wallpaper(id)
             save_current_wallpaper_id(id, config_file)
     else:
-        print("无效模式。请选择 1 (顺序播放)，2 (随机)，或 3 (随机不重复)。")
+        logging.info("无效模式。请选择 1 (顺序播放)，2 (随机)，或 3 (随机不重复)。")
         sys.exit(1)

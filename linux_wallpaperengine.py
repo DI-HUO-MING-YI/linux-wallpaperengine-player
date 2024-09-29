@@ -8,7 +8,7 @@ from helper import LinuxWallpaperengineConfig
 current_process: list[int] = []
 
 
-def kill_wallpaperengine():
+def kill_wallpaperengine_process():
     try:
         for pid in current_process:
             result = subprocess.run(
@@ -32,16 +32,19 @@ def load_wallpaper(
     log_path: str | None,
     config: LinuxWallpaperengineConfig,
 ):
-    print("start load_wallpaper")
+    logging.info("start load_wallpaper")
     wallpaper_path: str = os.path.join(wallpaper_dir, id)
     if os.path.isdir(wallpaper_path):
-        kill_wallpaperengine()
+        kill_wallpaperengine_process()
         logging.info(f"加载壁纸: {id}")
 
         base_command = ["linux-wallpaperengine"]
         screen_roots = config.screen_root
 
-        print("1")
+        if screen_roots is None:
+            logging.warning("No screen root config found. Exit.")
+            return
+
         for i, screen_root in enumerate(screen_roots):
             command = base_command.copy()
             if config.scaling:
@@ -50,7 +53,6 @@ def load_wallpaper(
                 command += ["--clamping", config.clamping]
             command += ["--screen-root", screen_root]
 
-            print("2")
             if i == 0:
                 if config.silent:
                     command.append("--silent")
@@ -84,13 +86,11 @@ def load_wallpaper(
 
             command.append(id)
 
-            print("3")
-            logging.info(f"执行命令: {' '.join(command)}")
+            logging.info(f"Execute command: {' '.join(command)}")
             log_output = f"{log_path}_in_{screen_root}"
             with open(os.path.expanduser(log_output), "a") as log_file:
                 process = subprocess.Popen(command, stdout=log_file, stderr=log_file)
                 current_process.append(process.pid)
-            print("4")
-            time.sleep(1)
+            time.sleep(0.5)
     else:
         logging.error(f"Wallpaper {id} not found")

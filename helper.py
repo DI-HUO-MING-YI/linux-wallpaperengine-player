@@ -19,6 +19,8 @@ class PlayerConfig:
     interval: int | None
     log_file: str | None
     wallpaperengine_log_file: str | None
+    picked_types: list[str] | None
+    skipped_types: list[str] | None
 
 
 @dataclass
@@ -33,7 +35,7 @@ class LinuxWallpaperengineConfig:
     volume: int | None
     noautomute: bool | None
     no_audio_processing: bool | None
-    screen_root: list[str]
+    screen_root: list[str] | None
     window: bool | None
     fps: int | None
     assets_dir: str | None
@@ -53,31 +55,23 @@ class GlobalConfig:
     linux_wallpaperengine: LinuxWallpaperengineConfig
 
 
-def setup_logging(log_file: str | None):
-    handlers = [logging.StreamHandler(sys.stdout)]
-    if isinstance(log_file, str):
-        log_file = os.path.expanduser(log_file)
-        handlers.insert(0, logging.FileHandler(log_file))
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s: %(message)s",
-        handlers=handlers,
+def read_config(config_path: str | None) -> GlobalConfig:
+    script_path = os.path.dirname(__file__)
+    default_config_file = os.path.expanduser(f"{script_path}/config.ini")
+    custom_config_file = (
+        os.path.expanduser(config_path)
+        if config_path is not None
+        else default_config_file
     )
 
-
-def read_config(config_path: str) -> GlobalConfig:
-    # default_config_file = os.path.expanduser("~/.config/wallpaperengine/config")
-    # custom_config_file = sys.argv[1] if len(sys.argv) > 1 else default_config_file
-    custom_config_file = os.path.expanduser(config_path)
-
     if not os.path.isfile(custom_config_file):
-        print(f"config file not found: {custom_config_file}")
+        logging.info(f"config file not found: {custom_config_file}")
         sys.exit(1)
 
-    print(f"using custom config file: {custom_config_file}")
+    logging.info(f"using custom config file: {custom_config_file}")
 
     config = configparser.ConfigParser()
-    # _ = config.read(default_config_file)
+    _ = config.read(default_config_file)
     _ = config.read(custom_config_file)
     player_config = PlayerConfig(
         mode=(
@@ -92,6 +86,16 @@ def read_config(config_path: str) -> GlobalConfig:
         log_file=config.get("player", "log_file", fallback=None),
         wallpaperengine_log_file=config.get(
             "player", "wallpaperengine_log_file", fallback=None
+        ),
+        picked_types=(
+            config.get("player", "picked_types").split(",")
+            if "picked_types" in config["player"]
+            else None
+        ),
+        skipped_types=(
+            config.get("player", "skipped_types").split(",")
+            if "skipped_types" in config["player"]
+            else None
         ),
     )
 
@@ -114,7 +118,7 @@ def read_config(config_path: str) -> GlobalConfig:
         screen_root=(
             config.get("linux_wallpaperengine", "screen_root").split(",")
             if "screen_root" in config["linux_wallpaperengine"]
-            else []
+            else None
         ),
         window=config.getboolean("linux_wallpaperengine", "window", fallback=None),
         fps=config.getint("linux_wallpaperengine", "fps", fallback=None),
