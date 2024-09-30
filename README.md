@@ -48,6 +48,28 @@ Clone this repo, and just run using Python
 6. wait 1 scond, and new wallpaper will replace the last one.
 
 - ### Batch check wallpapers using Wallpaper Engine's folders.
+
+1. create a new folder named test, and put wallpapers that you want to check.
+   ![check_1](./documents/check_1.png)
+   #### NOTE:
+   **_\* MUST CLOSE THE WALLPAPER ENGINE_**  
+   **_\* It is recommend to close it using Steam stop function_**
+2. run player.py to batch check. chose which fold to check, and play wallpapers one by one.
+   ![check_2](./documents/check_2.png)
+   ![check_3](./documents/check_3.png)
+
+   #### NOTE:
+
+   **_\* folders named with suffix "\_piecked" and "\_skipped" will not be checked_**  
+   **_\* type y / n to check a wallpaper, if y , the wallpaper will be moved to a new folder named test_picked_**  
+   **_\* if n, the wallpaper will be moved to a new folder named test_skipped_**  
+   **_\* if type nothing and just press enter, the wallpaper will not be moved_**
+
+3. test_skipped and test_picked will be created and wallpapers will be moved to them by your choise.
+   ![check_4](./documents/check_4.png)
+   ![check_5](./documents/check_5.png)
+   ![check_6](./documents/check_6.png)
+
 - ### Play wallpapers using a playlist.
 
 1. open the wallpaperengine UI, pick some wallpapers and add to playlist, then click Configure.

@@ -181,10 +181,10 @@ def check_items(
         )
 
         while True:
-            user_input = input("是否添加到新项? (y/n): ").strip().lower()
+            user_input = input("Mark this wallpaer as picked? (y/n): ").strip().lower()
             if user_input in ["y", "n", ""]:
                 break
-            logging.info("无效输入，请输入 'y' 或 'n' 或者直接回车跳过")
+            logging.info("Input not support, type y/n or just type enter.")
 
         if user_input == "y":
             move_to_folder(
@@ -238,9 +238,7 @@ def check_folders(
             )
 
         while True:
-            user_input = (
-                input(f"是否check this folder: {title}? (y/n): ").strip().lower()
-            )
+            user_input = input(f"check this folder: {title}? (y/n): ").strip().lower()
             if user_input in ["y", "n"]:
                 break
             logging.info("无效输入，请输入 'y' 或 'n' 或者直接回车跳过")
