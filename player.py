@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -25,6 +26,10 @@ type Item = dict[str, int]
 type Folder = dict[str, Item | list[Folder] | str]
 type Settings = dict[str, int | str | bool]
 type PlayList = dict[str, str | Settings | list[str]]
+type Monitor = dict[str, str]
+type Selectedwallpapers = dict[str, Monitor]
+type Profile = dict[str, int | str | Selectedwallpapers]
+type Profiles = list[Profile]
 type PlayLists = list[PlayList]
 type Browser = dict[str, list[Folder]]
 type General = dict[str, Browser | PlayLists]
@@ -88,6 +93,20 @@ def get_play_lists(wallpaperengine_config: WallpaperengineConfig) -> PlayLists:
         "general", {}
     )
     return cast(PlayLists, general.get("playlists", {}))
+
+
+def get_profile(
+    wallpaperengine_config: WallpaperengineConfig, profile_name: str
+) -> Profile:
+    general = cast(Steamuser, wallpaperengine_config.get("steamuser", {})).get(
+        "general", {}
+    )
+    profiles = cast(Profiles, general.get("profiles", []))
+    profile = next((p for p in profiles if p.get("name") == profile_name), None)
+    if profile is None:
+        logging.error(f"No such playlist named {profile}")
+        exit(1)
+    return profile
 
 
 def should_picked(
@@ -184,7 +203,7 @@ def check_items(
                 wallpaperengine_config,
             )
         else:
-            break
+            continue
 
 
 def move_to_folder(
@@ -320,6 +339,57 @@ def play(GLOBAL_CONFIG: GlobalConfig, play_list_name: str):
         play_by_timer(GLOBAL_CONFIG, items, settings)
 
 
+def calculate_file_hash(file_path: str) -> str:
+    with open(file_path, "rb") as f:
+        file_data = f.read()
+        return hashlib.md5(file_data).hexdigest()
+
+
+def watch(GLOBAL_CONFIG: GlobalConfig, profile_name: str):
+    logging.info("play wallpaper profile new")
+    wallpaperengine_config_path = os.path.expanduser(
+        GLOBAL_CONFIG.wallpaperengine.wallpaperengine_config_file
+    )
+
+    last_hash = None
+
+    while True:
+        time.sleep(1)  # 每秒检查一次
+        current_hash = calculate_file_hash(wallpaperengine_config_path)
+        if last_hash is None or current_hash != last_hash:
+            wallpaperengine_config = get_wallpaperengine_config(
+                wallpaperengine_config_path
+            )
+            print("File has been modified")
+            last_hash = current_hash
+            profile = get_profile(wallpaperengine_config, profile_name)
+            selectedwallpapers = cast(
+                Selectedwallpapers, profile.get("selectedwallpapers")
+            )
+
+            if len(selectedwallpapers) == 0:
+                logging.error(f"Error read profile {profile_name}")
+                exit(1)
+
+            file = cast(Monitor, selectedwallpapers.get("Monitor0")).get("file")
+
+            if file is None:
+                logging.error(f"Error read profile {profile_name}")
+                exit(1)
+
+            wallpaper_id = get_wallpaper_id(file)
+
+            wallpaper_dir = os.path.expanduser(
+                os.path.expanduser(GLOBAL_CONFIG.wallpaperengine.wallpaper_dir)
+            )
+            load_wallpaper(
+                wallpaper_id,
+                wallpaper_dir,
+                GLOBAL_CONFIG.player.wallpaperengine_log_file,
+                GLOBAL_CONFIG.linux_wallpaperengine,
+            )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="A script that either checks or plays."
@@ -330,8 +400,10 @@ def main():
         "--check", action="store_true", help="Execute check function"
     )
     _ = group.add_argument("--play", action="store_true", help="Execute play function")
+    _ = group.add_argument("--watch", action="store_true", help="Execute play function")
     _ = parser.add_argument("--config", type=str, help="Config file path")
     _ = parser.add_argument("--playlist", type=str, help="Config file path")
+    _ = parser.add_argument("--profile", type=str, help="Config file path")
 
     args = parser.parse_args()
     GLOBAL_CONFIG = read_config(args.config)
@@ -340,6 +412,8 @@ def main():
         check(GLOBAL_CONFIG)
     elif args.play:
         play(GLOBAL_CONFIG, args.playlist)
+    elif args.watch:
+        watch(GLOBAL_CONFIG, args.profile)
     return
 
 
