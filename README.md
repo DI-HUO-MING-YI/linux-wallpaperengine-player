@@ -100,4 +100,4 @@ Clone this repo, and just run using Python
 
 ## NOTE: I only test this tool on Archlinux with Hyprland.
 
-## If you have any questions, just post an issue.
+If you have any questions, just post an issue.
