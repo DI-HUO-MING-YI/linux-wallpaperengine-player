@@ -33,7 +33,7 @@ Clone this repo, and just run using Python
 
 1. open the wallpaperengine UI, pick a wallpaper and click Displays
    ![watch_1](./documents/watch_1.png)
-   **\* Now only one display is supported, multi displays supporting is comming sone.**
+   **_\*Now only one display is supported, multi displays supporting is comming soon._**
 2. save as a profile with the name test_m_1
    ![watch_2](./documents/watch_2.png)
    ![watch_3](./documents/watch_3.png)
@@ -49,3 +49,27 @@ Clone this repo, and just run using Python
 
 - ### Batch check wallpapers using Wallpaper Engine's folders.
 - ### Play wallpapers using a playlist.
+
+1. open the wallpaperengine UI, pick some wallpapers and add to playlist, then click Configure.
+   ![play_1](./documents/play_1.png)
+2. set playlist settings, not all settings is available, but they are comming soon.
+
+   **only timer play mode is available now, and you can set times now**  
+   **Oreder is also supported now**
+   ![play_2](./documents/play_2.png)
+
+3. save as a playlist with the name test_p_1
+   ![play_3](./documents/play_3.png)
+   ![play_4](./documents/play_4.png)
+4. run player.py to start display wallpapers using playlist seetings
+
+```bash
+./player.py --play --playlist test_p_1
+```
+
+4. the wallpaper will display now.
+5. you can pick some wallpapers and save playlist with the same name.
+6. rerun player.py to apply new playlist settings.  
+   **_\*auto rerun is comming soon_**
+
+---
