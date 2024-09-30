@@ -94,4 +94,10 @@ Clone this repo, and just run using Python
 6. rerun player.py to apply new playlist settings.  
    **_\*auto rerun is comming soon_**
 
----
+## Configration
+
+## Roadmap
+
+## NOTE: I only test this tool on Archlinux with Hyprland.
+
+## If you have any questions, just post an issue.
