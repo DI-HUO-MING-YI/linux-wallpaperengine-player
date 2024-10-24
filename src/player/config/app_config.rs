@@ -1,4 +1,4 @@
-use std::{env, fs, path::Path};
+use std::path::Path;
 
 use config::{Config, File};
 use serde::Deserialize;
@@ -24,29 +24,29 @@ pub struct GeneralConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct PlayCommandConfig {
-    base_command: String,
-    log_file: Option<String>,
-    silent: Option<bool>,
-    volume: Option<usize>,
-    noautomute: Option<bool>,
-    no_audio_processing: Option<bool>,
-    screen_root: Vec<String>,
-    window: Option<bool>,
-    fps: Option<usize>,
-    assets_dir: Option<String>,
-    screenshot: Option<bool>,
-    list_propertites: Option<bool>,
-    set_property: Option<Vec<String>>,
-    no_fullscreen_pause: Option<bool>,
-    disable_mouse: Option<bool>,
-    scaling: Option<String>,
-    clamping: Option<String>,
+    pub base_command: String,
+    pub log_file: Option<String>,
+    pub silent: Option<bool>,
+    pub volume: Option<usize>,
+    pub noautomute: Option<bool>,
+    pub no_audio_processing: Option<bool>,
+    pub screen_root: Vec<String>,
+    pub window: Option<bool>,
+    pub fps: Option<usize>,
+    pub assets_dir: Option<String>,
+    pub screenshot: Option<bool>,
+    pub list_propertites: Option<bool>,
+    pub set_property: Option<Vec<String>>,
+    pub no_fullscreen_pause: Option<bool>,
+    pub disable_mouse: Option<bool>,
+    pub scaling: Option<String>,
+    pub clamping: Option<String>,
 }
 
 impl AppConfig {
     pub fn get_app_config(config_path: Option<&String>) -> AppConfig {
         let config_path =
-            config_path.map_or_else(|| Path::new("./config.toml"), |path| Path::new(path));
+            config_path.map_or_else(|| Path::new("config.toml"), |path| Path::new(path));
         Config::builder()
             .add_source(File::from(config_path))
             .build()

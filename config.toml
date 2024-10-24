@@ -6,16 +6,16 @@
 # interval = 60
 # 更换间隔时间（秒）
 # interval = 6 # 更换间隔时间（秒）
-log_file = "~/.config/wallpaperengine/debug.log"
+log_file = "/home/narcissus/.config/wallpaperengine/debug.log"
 picked_types = ["video"]
 skipped_types = ["application"]
 play_list_name = "test"
-wallpapers_dir = "~/.local/share/Steam/steamapps/workshop/content/431960/"
-wallpaperengine_config_file = "~/.local/share/Steam/steamapps/common/wallpaper_engine/config.json"
+wallpapers_dir = "/home/narcissus/.local/share/Steam/steamapps/workshop/content/431960/"
+wallpaperengine_config_file = "/home/narcissus/.local/share/Steam/steamapps/common/wallpaper_engine/config.json"
 
 [play_command]
 base_command = "linux-wallpaperengine"
-log_file = "~/.config/wallpaperengine/linux-wallpaperengine.log"
+log_file = "/home/narcissus/.config/wallpaperengine/linux-wallpaperengine.log"
 silent = true
 # volume = 50
 # noautomute = true

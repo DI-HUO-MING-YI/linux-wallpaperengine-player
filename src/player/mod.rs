@@ -2,7 +2,6 @@ mod check;
 mod config;
 mod linux_wallpaperengine;
 mod play;
-mod util;
 mod watch;
 
 use clap::{Arg, Command};

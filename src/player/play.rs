@@ -1,13 +1,11 @@
 use log::info;
-use rand::seq::SliceRandom;
-use serde_json::Value;
 use std::path::Path;
-use std::{thread, time, usize};
+use std::{thread, time};
 
 use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
 
 use super::config::app_config::AppConfig;
-use super::config::wallpaperengine_config::Playlist;
+use super::linux_wallpaperengine::load_wallpaper;
 
 pub fn play(playlist_name: &String, app_config: &AppConfig) {
     info!("play wallpaper list {playlist_name} new");
@@ -16,20 +14,20 @@ pub fn play(playlist_name: &String, app_config: &AppConfig) {
     wallpaper_engine_config.load_playlist(playlist_name);
     let playlist = wallpaper_engine_config.playlist.unwrap();
 
-    let wallpaper_dir = Path::new(&app_config.general.wallpapers_dir);
+    let wallpapers_dir = Path::new(&app_config.general.wallpapers_dir);
 
-    for wallpaper_id in playlist.wallpapers {
-        let item_dir = wallpaper_dir.join(wallpaper_id);
-        let item_project_json = item_dir.join("project.json");
+    for wallpaper_id in playlist.wallpapers.iter() {
+        let wallpaper_dir = wallpapers_dir.join(wallpaper_id);
+        let project_json = wallpaper_dir.join("project.json");
 
-        if !item_dir.exists() && !item_project_json.exists() {
+        if !wallpaper_dir.exists() || !project_json.exists() {
             info!("wallpaper {} not found.", wallpaper_id);
             continue;
         }
 
-        load_wallpaper(wallpaper_id, wallpaper_dir);
+        load_wallpaper(&wallpaper_dir, &wallpaper_id, &app_config.play_command);
 
-        thread::sleep(time::Duration::from_secs((delay * 60) as u64));
+        thread::sleep(time::Duration::from_secs((playlist.delay * 60) as u64));
     }
 }
 
