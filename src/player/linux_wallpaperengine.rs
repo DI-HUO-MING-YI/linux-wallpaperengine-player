@@ -6,7 +6,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use log::{error, info};
-use nix::libc::{kill, killpg, setpgid, SIGKILL, SIGTERM};
+use nix::libc::setpgid;
 
 use super::config::app_config::PlayCommandConfig;
 
