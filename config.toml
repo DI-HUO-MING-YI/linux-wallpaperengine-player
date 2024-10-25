@@ -6,7 +6,7 @@
 # interval = 60
 # 更换间隔时间（秒）
 # interval = 6 # 更换间隔时间（秒）
-log_file = "/home/narcissus/.config/wallpaperengine/debug.log"
+log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
 skipped_types = ["application"]
 play_list_name = "test"

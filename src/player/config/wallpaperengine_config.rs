@@ -4,6 +4,8 @@ use rand::seq::SliceRandom;
 use serde::Deserialize;
 use serde_json::Value;
 
+use crate::util::extract_last_directory_name;
+
 #[derive(Debug, Deserialize)]
 pub struct WallpaperEngineConfig {
     pub config: Value,
@@ -87,8 +89,7 @@ impl WallpaperEngineConfig {
             .iter()
             .map(|item| item.as_str().expect("Item is not a string!").to_string())
             .map(|path| {
-                util::extract_last_directory_name(&path)
-                    .expect("Wallpaper path has no wallpaper id!")
+                extract_last_directory_name(&path).expect("Wallpaper path has no wallpaper id!")
             })
             .collect()
     }

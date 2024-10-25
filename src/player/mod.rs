@@ -6,12 +6,17 @@ mod watch;
 
 use clap::{Arg, Command};
 use config::app_config::AppConfig;
+use fern::Dispatch;
 use play::play;
 
 pub fn run() {
     let matches = register_command();
     let config_path = matches.get_one::<String>("config");
     let app_config = AppConfig::get_app_config(config_path);
+    let log_file = app_config.general.log_file.as_ref();
+    let default_log_file = String::from("debug.log");
+
+    setup_logging(log_file.unwrap_or(&default_log_file));
 
     if let Some(_) = matches.subcommand_matches("check") {
         // check();
@@ -53,4 +58,12 @@ fn register_command() -> clap::ArgMatches {
         )
         .subcommand_required(true)
         .get_matches()
+}
+fn setup_logging(log_file: &str) {
+    Dispatch::new()
+        .level(log::LevelFilter::Debug)
+        .chain(std::io::stdout())
+        .chain(fern::log_file(log_file).unwrap())
+        .apply()
+        .unwrap();
 }

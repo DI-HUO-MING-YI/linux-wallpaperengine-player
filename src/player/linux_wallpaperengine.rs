@@ -1,41 +1,61 @@
 use std::fs::{self, File};
+use std::os::unix::process::CommandExt;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;
 
 use log::{error, info};
+use nix::libc::{kill, killpg, setpgid, SIGKILL, SIGTERM};
 
 use super::config::app_config::PlayCommandConfig;
 
-fn kill_wallpaperengine_process() {
-    let result = Command::new("sh")
-            .arg("-c")
-            .arg("ps aux | grep \"linux-wallpaperengine\" | grep -v \"grep\" | grep -v \"linux-wallpaperengine-player\" | awk '{print $2}' | xargs kill -9")
-            .status();
-
-    match result {
-        Ok(status) if status.success() => info!("Killed all linux-wallpaperengine process"),
-        _ => info!("Can not kill the linux-wallpaperengine process"),
-    }
-}
-
-pub fn load_wallpaper(wallpaper_path: &Path, wallpaper_id: &str, config: &PlayCommandConfig) {
+pub fn load_wallpaper(
+    wallpaper_path: &Path,
+    wallpaper_id: &str,
+    config: &PlayCommandConfig,
+) -> Vec<Child> {
     info!("start load_wallpaper");
     if fs::metadata(wallpaper_path).is_ok() {
-        kill_wallpaperengine_process();
         info!("loading wallpaper: {}", wallpaper_path.to_str().unwrap());
 
+        let mut pids = vec![];
         for screen_root in &config.screen_root {
-            play_on_screen_root(config, &screen_root, wallpaper_id);
+            let screen_root: &String = &screen_root;
+            let mut command = build_command(config, screen_root, wallpaper_id);
+
+            let log_file = match &(config.log_file) {
+                Some(_) => config.log_file.as_ref().unwrap(),
+                None => "./linux_wallpaperengine.log",
+            };
+
+            info!("Execute command: {:?}", command);
+            let process = unsafe {
+                command
+                    .stdout(Stdio::from(
+                        File::create(&log_file).expect("Can not cerea log file!"),
+                    ))
+                    .stderr(Stdio::from(
+                        File::create(&log_file).expect("Can not cerea log file!"),
+                    ))
+                    .pre_exec(|| {
+                        setpgid(0, 0);
+                        Ok(())
+                    })
+                    .spawn()
+                    .expect("Error to run command!")
+            };
+            pids.push(process);
             sleep(Duration::from_millis(500));
         }
+        pids
     } else {
         error!("Wallpaper {} not found", wallpaper_path.to_str().unwrap());
+        vec![]
     }
 }
 
-fn play_on_screen_root(config: &PlayCommandConfig, screen_root: &String, wallpaper_id: &str) {
+fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id: &str) -> Command {
     let mut command = Command::new("linux-wallpaperengine");
     if let Some(scaling) = &config.scaling {
         command.arg("--scaling").arg(scaling);
@@ -92,21 +112,5 @@ fn play_on_screen_root(config: &PlayCommandConfig, screen_root: &String, wallpap
     }
 
     command.arg(wallpaper_id);
-
-    let log_file = match &(config.log_file) {
-        Some(_) => config.log_file.as_ref().unwrap(),
-        None => "./linux_wallpaperengine.log",
-    };
-
-    info!("Execute command: {:?}", command);
-    let process = command
-        .stdout(Stdio::from(
-            File::create(&log_file).expect("Can not cerea log file!"),
-        ))
-        .stderr(Stdio::from(
-            File::create(&log_file).expect("Can not cerea log file!"),
-        ))
-        .spawn()
-        .expect("Error to run command!");
-    process.id();
+    command
 }

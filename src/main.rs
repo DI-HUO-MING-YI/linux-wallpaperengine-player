@@ -1,8 +1,6 @@
 mod player;
+mod util;
 
 fn main() {
-    env_logger::init();
     player::run();
 }
-
-
