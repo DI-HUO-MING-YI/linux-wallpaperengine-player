@@ -1,3 +1,3 @@
-use super::config::wallpaperengine_config::WallpaperEngineConfig;
+use super::config::app_config::AppConfig;
 
-pub fn check(wallpaper_engine_config: WallpaperEngineConfig) {}
+pub fn check(wallpaper_engine_config: &AppConfig) {}

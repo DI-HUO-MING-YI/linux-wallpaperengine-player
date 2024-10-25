@@ -56,7 +56,7 @@ pub fn load_wallpaper(
 }
 
 fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id: &str) -> Command {
-    let mut command = Command::new("linux-wallpaperengine");
+    let mut command = Command::new(&config.base_command);
     if let Some(scaling) = &config.scaling {
         command.arg("--scaling").arg(scaling);
     }

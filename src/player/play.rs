@@ -7,9 +7,9 @@ use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
 use crate::util::kill_process;
 
 use super::config::app_config::AppConfig;
-use super::linux_wallpaperengine::load_wallpaper;
+use super::wallpaper::load_wallpaper;
 
-pub fn play(playlist_name: &String, app_config: &AppConfig) {
+pub fn play(app_config: &AppConfig, playlist_name: &String) {
     info!("play wallpaper list {playlist_name} new");
     let mut wallpaper_engine_config =
         WallpaperEngineConfig::load_config_from(&app_config.general.wallpaperengine_config_file);
