@@ -1,3 +1,5 @@
+use core::str;
+use std::f64;
 use std::fs::{self, File};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
@@ -124,4 +126,27 @@ pub fn kill_all_wallpaperengine_process() {
         Ok(status) if status.success() => info!("Killed all linux-wallpaperengine process"),
         _ => info!("Can not kill the linux-wallpaperengine process"),
     }
+}
+
+pub fn get_video_duration(file_path: &str) -> f64 {
+    info!("get vide duration: {file_path}");
+    Command::new("ffprobe")
+        .args(&[
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            file_path,
+        ])
+        .output()
+        .map_or_else(
+            |_| 0.0,
+            |o| {
+                str::from_utf8(&o.stdout)
+                    .map(|it| it.trim())
+                    .map_or_else(|_| 0.0, |it| it.parse::<f64>().unwrap_or(0.0))
+            },
+        )
 }

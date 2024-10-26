@@ -21,10 +21,11 @@ pub struct Profile {
 
 #[derive(Debug, Deserialize)]
 pub struct Playlist {
-    pub wallpapers: Vec<String>,
+    pub wallpaper_ids: Vec<String>,
     pub mode: String,
     pub order: String,
     pub delay: u64,
+    pub videosequence: bool,
 }
 
 pub struct Folder {
@@ -77,18 +78,20 @@ impl WallpaperEngineConfig {
         let order = Self::get_playlist_order(settings);
         let delay = Self::get_playlist_delay(settings);
         let mode = Self::get_playlist_mode(settings);
+        let videosequence = Self::get_playlist_videosequence(settings);
 
-        let mut wallpapers: Vec<String> = Self::get_wallpaper_ids(playlist);
+        let mut wallpaper_ids: Vec<String> = Self::get_wallpaper_files(playlist);
         if order == "random" {
             let mut rng = rand::thread_rng();
-            wallpapers.shuffle(&mut rng);
+            wallpaper_ids.shuffle(&mut rng);
         }
 
         self.playlist = Some(Playlist {
-            wallpapers,
+            wallpaper_ids,
             mode,
             order,
             delay,
+            videosequence,
         });
     }
 
@@ -144,7 +147,7 @@ impl WallpaperEngineConfig {
             .to_string()
     }
 
-    fn get_wallpaper_ids(playlist: &Value) -> Vec<String> {
+    fn get_wallpaper_files(playlist: &Value) -> Vec<String> {
         playlist
             .get("items")
             .expect("Node items not found!")
@@ -186,5 +189,13 @@ impl WallpaperEngineConfig {
             .iter()
             .find(|p| p.get("name").map(|name| name.as_str()) == Some(Some(profile_name)))
             .expect(&format!("No such playlist named {}", &profile_name))
+    }
+
+    fn get_playlist_videosequence(settings: &Value) -> bool {
+        settings
+            .get("videosequence")
+            .expect("Node videosequence not found!")
+            .as_bool()
+            .expect("Node videosequence not found!")
     }
 }
