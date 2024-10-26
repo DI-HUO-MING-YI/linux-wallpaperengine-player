@@ -1,15 +1,22 @@
 pub(crate) use std::fs;
+use std::path::Path;
 
 use rand::seq::SliceRandom;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::util::extract_last_directory_name;
+use crate::{player::wallpaper, util::extract_last_directory_name};
 
 #[derive(Debug, Deserialize)]
 pub struct WallpaperEngineConfig {
     pub config: Value,
     pub playlist: Option<Playlist>,
+    pub profile: Option<Profile>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Profile {
+    pub wallpaper_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -33,9 +40,30 @@ impl WallpaperEngineConfig {
         Self {
             config,
             playlist: None,
+            profile: None,
         }
     }
-
+    pub fn load_profile(&mut self, profile_name: &String) {
+        let profile = self.get_profile(profile_name);
+        let wallpaperid = profile
+            .get("selectedwallpapers")
+            .expect("Node selectedwallpapers not found")
+            .get("Monitor0")
+            .expect("Node Monitor0 not found")
+            .get("file")
+            .expect("Node file not found")
+            .as_str()
+            .expect("Node file is not a string");
+        let wallpaper_id = Path::new(&wallpaperid)
+            .parent()
+            .expect("Not found dir name from file")
+            .file_name()
+            .expect("Not found dir name from file")
+            .to_str()
+            .expect("Can not covert string")
+            .to_string();
+        self.profile = Some(Profile { wallpaper_id });
+    }
     pub fn load_playlist(&mut self, playlist_name: &String) {
         let playlist = self.get_playlist(playlist_name);
         let settings = playlist.get("settings").expect("Node settings not found!");
@@ -107,5 +135,20 @@ impl WallpaperEngineConfig {
             .iter()
             .find(|p| p.get("name").map(|name| name.as_str()) == Some(Some(playlist_name)))
             .expect(&format!("No such playlist named {}", &playlist_name))
+    }
+
+    fn get_profile(&self, profile_name: &str) -> &Value {
+        self.config
+            .get("steamuser")
+            .expect("Node steamuser not found!")
+            .get("general")
+            .expect("Node general not found !")
+            .get("profiles")
+            .expect("Node profiles not found!")
+            .as_array()
+            .expect("Node profiles is not an array")
+            .iter()
+            .find(|p| p.get("name").map(|name| name.as_str()) == Some(Some(profile_name)))
+            .expect(&format!("No such playlist named {}", &profile_name))
     }
 }

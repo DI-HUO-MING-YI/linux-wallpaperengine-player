@@ -114,3 +114,14 @@ fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id:
     command.arg(wallpaper_id);
     command
 }
+pub fn kill_all_wallpaperengine_process() {
+    let result = Command::new("sh")
+            .arg("-c")
+            .arg("ps aux | grep \"linux-wallpaperengine\" | grep -v \"grep\" | grep -v \"linux-wallpaperengine-player\" | awk '{print $2}' | xargs kill -9")
+            .status();
+
+    match result {
+        Ok(status) if status.success() => info!("Killed all linux-wallpaperengine process"),
+        _ => info!("Can not kill the linux-wallpaperengine process"),
+    }
+}

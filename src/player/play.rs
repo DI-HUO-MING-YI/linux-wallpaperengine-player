@@ -4,6 +4,7 @@ use std::process::{Child, Command};
 use std::{thread, time};
 
 use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
+use crate::player::wallpaper::kill_all_wallpaperengine_process;
 use crate::util::kill_process;
 
 use super::config::app_config::AppConfig;
@@ -38,17 +39,5 @@ pub fn play(app_config: &AppConfig, playlist_name: &String) {
         pre_processes = child_processes;
 
         thread::sleep(time::Duration::from_secs((playlist.delay * 60) as u64));
-    }
-}
-
-fn kill_all_wallpaperengine_process() {
-    let result = Command::new("sh")
-            .arg("-c")
-            .arg("ps aux | grep \"linux-wallpaperengine\" | grep -v \"grep\" | grep -v \"linux-wallpaperengine-player\" | awk '{print $2}' | xargs kill -9")
-            .status();
-
-    match result {
-        Ok(status) if status.success() => info!("Killed all linux-wallpaperengine process"),
-        _ => info!("Can not kill the linux-wallpaperengine process"),
     }
 }
