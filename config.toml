@@ -1,9 +1,7 @@
 [general]
-# mode = 1
+current_wallpaper_id = "3327870540"
+# interval = 60# mode = 1
 # 循环模式：1=顺序播放, 2=随机, 3=随机不重复
-# current_wallpaper_id = 2965361511
-# current_wallpaper_id = 2894972488
-# interval = 60
 # 更换间隔时间（秒）
 # interval = 6 # 更换间隔时间（秒）
 log_file = "/home/narcissus/linux-wallpaperengine.log"

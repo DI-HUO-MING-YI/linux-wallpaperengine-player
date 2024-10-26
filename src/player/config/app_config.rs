@@ -44,14 +44,17 @@ pub struct PlayCommandConfig {
 }
 
 impl AppConfig {
-    pub fn get_app_config(config_path: Option<&String>) -> AppConfig {
+    pub fn get_app_config(config_path: Option<&String>) -> (AppConfig, &Path) {
         let config_path =
             config_path.map_or_else(|| Path::new("config.toml"), |path| Path::new(path));
-        Config::builder()
-            .add_source(File::from(config_path))
-            .build()
-            .expect("Error add config file!")
-            .try_deserialize::<AppConfig>()
-            .expect("Error parse config file!")
+        (
+            Config::builder()
+                .add_source(File::from(config_path))
+                .build()
+                .expect("Error add config file!")
+                .try_deserialize::<AppConfig>()
+                .expect("Error parse config file!"),
+            config_path,
+        )
     }
 }

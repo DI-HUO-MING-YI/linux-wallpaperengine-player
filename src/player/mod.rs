@@ -15,7 +15,7 @@ pub fn run() {
     let matches = register_command();
 
     let config_path = matches.get_one::<String>("config");
-    let app_config = AppConfig::get_app_config(config_path);
+    let (app_config, config_path) = AppConfig::get_app_config(config_path);
 
     let log_file = app_config.general.log_file.as_ref();
     let default_log_file = String::from("debug.log");
@@ -27,7 +27,7 @@ pub fn run() {
         check(&app_config);
     } else if let Some(play_matches) = matches.subcommand_matches("play") {
         let playlist_name = play_matches.get_one::<String>("playlist").unwrap();
-        play(&app_config, playlist_name);
+        play(&app_config, playlist_name, config_path);
     } else if let Some(watch_matches) = matches.subcommand_matches("watch") {
         let profile_name = watch_matches.get_one::<String>("profile").unwrap();
         watch(&app_config, profile_name);

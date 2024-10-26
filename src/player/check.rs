@@ -39,7 +39,6 @@ pub fn check(app_config: &AppConfig) {
             }
         }
 
-        info!("input: {input}");
         if input.to_lowercase().trim() == "y".to_string() {
             info!("To check folder: {title}");
             let (picked, skipped, remained) = check_items(&folder, &app_config);
