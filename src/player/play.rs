@@ -1,6 +1,6 @@
 use log::info;
 use std::path::Path;
-use std::process::{Child, Command};
+use std::process::Child;
 use std::{thread, time};
 
 use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;

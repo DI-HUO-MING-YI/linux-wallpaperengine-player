@@ -5,11 +5,11 @@ use rand::seq::SliceRandom;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::{player::wallpaper, util::extract_last_directory_name};
+use crate::util::extract_last_directory_name;
 
 #[derive(Debug, Deserialize)]
 pub struct WallpaperEngineConfig {
-    pub config: Value,
+    pub source: Value,
     pub playlist: Option<Playlist>,
     pub profile: Option<Profile>,
 }
@@ -27,6 +27,11 @@ pub struct Playlist {
     pub delay: u64,
 }
 
+pub struct Folder {
+    pub items: Vec<String>,
+    pub title: String,
+}
+
 impl WallpaperEngineConfig {
     pub fn load_config_from(config_path: &String) -> Self {
         let config: Value = fs::read_to_string(config_path)
@@ -38,11 +43,12 @@ impl WallpaperEngineConfig {
                 "Error to read wallpaerengine config json file: {config_path}!"
             ));
         Self {
-            config,
+            source: config,
             playlist: None,
             profile: None,
         }
     }
+
     pub fn load_profile(&mut self, profile_name: &String) {
         let profile = self.get_profile(profile_name);
         let wallpaperid = profile
@@ -64,6 +70,7 @@ impl WallpaperEngineConfig {
             .to_string();
         self.profile = Some(Profile { wallpaper_id });
     }
+
     pub fn load_playlist(&mut self, playlist_name: &String) {
         let playlist = self.get_playlist(playlist_name);
         let settings = playlist.get("settings").expect("Node settings not found!");
@@ -84,6 +91,35 @@ impl WallpaperEngineConfig {
             delay,
         });
     }
+
+    pub fn get_folders(&self) -> Vec<Folder> {
+        self.source
+            .get("steamuser")
+            .expect("Node steamuser not found!")
+            .get("general")
+            .expect("Node general not found !")
+            .get("browser")
+            .expect("Node browser not found!")
+            .get("folders")
+            .expect("Node folders not found!")
+            .as_array()
+            .expect("Node folders is not an array")
+            .iter()
+            .map(|f| Folder {
+                title: f
+                    .get("title")
+                    .and_then(|t| t.as_str())
+                    .unwrap_or("unknown")
+                    .to_string(),
+                items: f
+                    .get("items")
+                    .and_then(|items| items.as_object())
+                    .map(|obj| obj.keys().cloned().collect())
+                    .unwrap_or_else(Vec::new),
+            })
+            .collect()
+    }
+
     fn get_playlist_mode(settings: &Value) -> String {
         settings
             .get("mode")
@@ -123,7 +159,7 @@ impl WallpaperEngineConfig {
     }
 
     fn get_playlist(&self, playlist_name: &String) -> &Value {
-        self.config
+        self.source
             .get("steamuser")
             .expect("Node steamuser not found!")
             .get("general")
@@ -138,7 +174,7 @@ impl WallpaperEngineConfig {
     }
 
     fn get_profile(&self, profile_name: &str) -> &Value {
-        self.config
+        self.source
             .get("steamuser")
             .expect("Node steamuser not found!")
             .get("general")
