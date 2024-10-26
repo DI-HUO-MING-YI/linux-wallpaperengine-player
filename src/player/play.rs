@@ -1,24 +1,26 @@
 use log::info;
-use regex::Regex;
 use std::path::Path;
 use std::process::Child;
-use std::{fs, thread, time};
+use std::{thread, time};
 
 use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
-use crate::player::wallpaper::{self, kill_all_wallpaperengine_process};
+use crate::player::wallpaper::kill_all_wallpaperengine_process;
 use crate::util::kill_process;
 
 use super::config::app_config::AppConfig;
 use super::wallpaper::load_wallpaper;
 
-pub fn play(app_config: &AppConfig, playlist_name: &String, config_path: &Path) {
+pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
+    let wallpaperengine_config_file = app_config.general.wallpaperengine_config_file.clone();
+    let wallpapers_dir = app_config.general.wallpapers_dir.clone();
+
     info!("play wallpaper list {playlist_name} new");
     let mut wallpaper_engine_config =
-        WallpaperEngineConfig::load_config_from(&app_config.general.wallpaperengine_config_file);
+        WallpaperEngineConfig::load_config_from(&wallpaperengine_config_file);
     wallpaper_engine_config.load_playlist(playlist_name);
 
     let playlist = wallpaper_engine_config.playlist.unwrap();
-    let wallpapers_dir = Path::new(&app_config.general.wallpapers_dir);
+    let wallpapers_dir = Path::new(&wallpapers_dir);
 
     kill_all_wallpaperengine_process();
     let mut pre_processes: Vec<Child> = vec![];
@@ -37,19 +39,22 @@ pub fn play(app_config: &AppConfig, playlist_name: &String, config_path: &Path) 
                     continue;
                 }
             }
-
             let wallpaper_dir = wallpapers_dir.join(wallpaper_id);
             let project_json = wallpaper_dir.join("project.json");
 
             if !wallpaper_dir.exists() || !project_json.exists() {
-                info!("wallpaper {} not found.", wallpaper_id);
+                info!(
+                    "wallpaper {} not found in {}.",
+                    wallpaper_id,
+                    wallpaper_dir.to_string_lossy()
+                );
                 continue;
             }
 
             let child_processes =
                 load_wallpaper(&wallpaper_dir, &wallpaper_id, &app_config.play_command);
 
-            save_current_wallpaper(config_path, &wallpaper_id);
+            app_config.save_current_wallpaper(&wallpaper_id);
 
             for p in pre_processes[..].as_mut().into_iter() {
                 info!("Try to kill process: {:#?}!", &p.id());
@@ -60,15 +65,4 @@ pub fn play(app_config: &AppConfig, playlist_name: &String, config_path: &Path) 
             thread::sleep(time::Duration::from_secs((playlist.delay * 60) as u64));
         }
     }
-}
-fn save_current_wallpaper(config_path: &Path, wallpaper_id: &String) {
-    let contents = fs::read_to_string(config_path).expect("Can not open config file.");
-
-    let re = Regex::new(r#"(?m)^current_wallpaper_id\s*=\s*"(.*)"#).unwrap();
-
-    let modified_contents = re.replace_all(
-        &contents,
-        &format!(r#"current_wallpaper_id = "{}""#, wallpaper_id),
-    );
-    fs::write(config_path, modified_contents.as_bytes()).expect("Can not write into config file");
 }

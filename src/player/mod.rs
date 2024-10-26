@@ -15,19 +15,16 @@ pub fn run() {
     let matches = register_command();
 
     let config_path = matches.get_one::<String>("config");
-    let (app_config, config_path) = AppConfig::get_app_config(config_path);
+    let mut app_config = AppConfig::get_app_config(config_path);
 
     let log_file = app_config.general.log_file.as_ref();
-    let default_log_file = String::from("debug.log");
-    let log_file = log_file.unwrap_or(&default_log_file);
-
-    setup_logging(log_file);
+    setup_logging(&log_file);
 
     if let Some(_) = matches.subcommand_matches("check") {
         check(&app_config);
     } else if let Some(play_matches) = matches.subcommand_matches("play") {
         let playlist_name = play_matches.get_one::<String>("playlist").unwrap();
-        play(&app_config, playlist_name, config_path);
+        play(&mut app_config, playlist_name);
     } else if let Some(watch_matches) = matches.subcommand_matches("watch") {
         let profile_name = watch_matches.get_one::<String>("profile").unwrap();
         watch(&app_config, profile_name);
@@ -65,7 +62,10 @@ fn register_command() -> clap::ArgMatches {
         .subcommand_required(true)
         .get_matches()
 }
-fn setup_logging(log_file: &str) {
+fn setup_logging(log_file: &Option<&String>) {
+    let log_file = log_file;
+    let default_log_file = String::from("debug.log");
+    let log_file = log_file.unwrap_or(&default_log_file);
     Dispatch::new()
         .level(log::LevelFilter::Debug)
         .chain(std::io::stdout())
