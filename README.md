@@ -14,16 +14,16 @@ A script tool for playing and checking live wallpapers with wallpaperengine and 
 - Steam(Linux)
 - wallpaperengine on Steam
 - run wallpaperengine using proton
-- Python >= 3.12
+- cargo >= 1.81.0
 
 ## Installation
 
-Clone this repo, and just run using Python
+Clone this repo, and just run using cargo run
 
 ```bash
     git clone https://github.com/DI-HUO-MING-YI/linux-wallpaperengine-player.git
     cd linux-wallpaperengine-player
-    ./player.py --help
+    cargo run -- --help
 
 ```
 
@@ -37,10 +37,10 @@ Clone this repo, and just run using Python
 2. save as a profile with the name test_m_1
    ![watch_2](./documents/watch_2.png)
    ![watch_3](./documents/watch_3.png)
-3. run player.py to start display wallpaper
+3. run cargo run to start display wallpaper
 
 ```bash
-./player.py --watch --profile test_m_1
+cargo run -- --watch --profile test_m_1
 ```
 
 4. the wallpaper will display now.
@@ -54,7 +54,7 @@ Clone this repo, and just run using Python
    #### NOTE:
    **_\* MUST CLOSE THE WALLPAPER ENGINE_**  
    **_\* It is recommend to close it using Steam stop function_**
-2. run player.py to batch check. chose which fold to check, and play wallpapers one by one.
+2. run cargo run to batch check. chose which fold to check, and play wallpapers one by one.
    ![check_2](./documents/check_2.png)
    ![check_3](./documents/check_3.png)
 
@@ -83,20 +83,28 @@ Clone this repo, and just run using Python
 3. save as a playlist with the name test_p_1
    ![play_3](./documents/play_3.png)
    ![play_4](./documents/play_4.png)
-4. run player.py to start display wallpapers using playlist seetings
+4. run cargo run to start display wallpapers using playlist seetings
 
 ```bash
-./player.py --play --playlist test_p_1
+cargo run -- --play --playlist test_p_1
 ```
 
 4. the wallpaper will display now.
 5. you can pick some wallpapers and save playlist with the same name.
-6. rerun player.py to apply new playlist settings.  
+6. rerun cargo run to apply new playlist settings.  
    **_\*auto rerun is comming soon_**
 
 ## Configration
 
 ## Roadmap
+
+- add play mode for folders.
+- support more playlist options.
+- support multi display in profile.
+- upload to AUR.
+- move current wallpaer to a folder when run this tool, not always to open wallpaperengine's UI.
+- try to chage wallpaper by click wallpaer icons just like what shows in windows.
+- more logs and error handler.
 
 ## NOTE: I only test this tool on Archlinux with Hyprland.
 
