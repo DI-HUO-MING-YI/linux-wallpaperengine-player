@@ -3,6 +3,7 @@ mod config;
 mod control;
 mod play;
 mod sddm;
+mod wallock;
 mod wallpaperengine;
 mod watch;
 
@@ -13,6 +14,7 @@ use control::control;
 use fern::Dispatch;
 use play::play;
 use sddm::sddm;
+use wallock::wallock;
 use watch::watch;
 
 pub fn run() {
@@ -35,6 +37,9 @@ pub fn run() {
     } else if let Some(sddm_matches) = matches.subcommand_matches("sddm") {
         let folder_name = sddm_matches.get_one::<String>("folder").unwrap();
         sddm(&mut app_config, folder_name);
+    } else if let Some(wallock_matches) = matches.subcommand_matches("wallock") {
+        let folder_name = wallock_matches.get_one::<String>("folder").unwrap();
+        wallock(&mut app_config, folder_name);
     } else if let Some(congtrol_matches) = matches.subcommand_matches("control") {
         let action = if congtrol_matches.get_flag("next") {
             Some("next")
@@ -114,6 +119,17 @@ fn register_command() -> clap::ArgMatches {
                     ArgGroup::new("actions")
                         .args(["next", "prev", "reload"])
                         .required(true),
+                ),
+        )
+        .subcommand(
+            Command::new("wallock")
+                .about("Execute wallock function")
+                .arg(
+                    Arg::new("folder")
+                        .long("folder")
+                        .value_parser(clap::value_parser!(String))
+                        .required(true)
+                        .help("Folder name from wallpaperengine"),
                 ),
         )
         .subcommand_required(true)

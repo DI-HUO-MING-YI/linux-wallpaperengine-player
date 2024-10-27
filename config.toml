@@ -1,5 +1,5 @@
 [general]
-current_wallpaper_id = "1898036753"
+current_wallpaper_id = "3168223301"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
 skipped_types = ["application"]
@@ -10,8 +10,12 @@ min_delay = 30
 max-delay = 600
 
 [sddm]
-pre_sddm_wallpaper_id = "2957540535"
+pre_sddm_wallpaper_id = "3092073914"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
+
+[wallock]
+pre_wallock_wallpaper_id = "3188441200"
+target_path = "/home/narcissus/.wallpapers/"
 
 [play_command]
 base_command = "linux-wallpaperengine"
