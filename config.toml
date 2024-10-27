@@ -1,16 +1,16 @@
 [general]
-current_wallpaper_id = "3034892752"
+current_wallpaper_id = "3122249769"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
 skipped_types = ["application"]
 play_list_name = "test"
 wallpapers_dir = "/home/narcissus/.local/share/Steam/steamapps/workshop/content/431960/"
 wallpaperengine_config_file = "/home/narcissus/.local/share/Steam/steamapps/common/wallpaper_engine/config.json"
-min_delay = 10
-max-delay = 1200
+min_delay = 30
+max-delay = 600
 
 [sddm]
-pre_sddm_wallpaper_id = "2973586047"
+pre_sddm_wallpaper_id = "3189743615"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
 
 [play_command]
@@ -27,7 +27,7 @@ screen_root = ["HDMI-A-1", "eDP-1"]
 # screen_root = ["eDP-1"]
 # window = true
 # window =
-fps = 144
+fps = 240
 # assets_dir =
 # screenshot = true
 # screenshot =
