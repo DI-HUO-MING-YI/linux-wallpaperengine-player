@@ -1,3 +1,4 @@
+use core::f64;
 use std::{fs, path::Path};
 
 use config::{Config, File};
@@ -23,7 +24,8 @@ pub struct SddmConfig {
 pub struct GeneralConfig {
     pub mode: Option<String>,
     pub current_wallpaper_id: Option<String>,
-    pub interval: Option<usize>,
+    pub min_delay: Option<f64>,
+    pub max_delay: Option<f64>,
     pub log_file: Option<String>,
     pub picked_types: Vec<String>,
     pub skipped_types: Vec<String>,
@@ -67,6 +69,12 @@ impl AppConfig {
         config
     }
 
+    pub fn get_delay_range(&self) -> (f64, f64) {
+        (
+            self.general.min_delay.unwrap_or(f64::MIN),
+            self.general.max_delay.unwrap_or(f64::MAX),
+        )
+    }
     pub fn save_current_wallpaper(&mut self, wallpaper_id: &String) {
         let contents = fs::read_to_string(&self.config_path).expect("Can not open config file.");
 
@@ -91,5 +99,9 @@ impl AppConfig {
         );
         fs::write(&self.config_path, modified_contents.as_bytes())
             .expect("Can not write into config file");
+    }
+
+    pub fn get_current_wallpaper(&self) -> Option<String> {
+        self.general.current_wallpaper_id.clone()
     }
 }

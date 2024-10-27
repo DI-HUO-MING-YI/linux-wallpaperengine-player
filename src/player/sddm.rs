@@ -37,7 +37,6 @@ pub fn sddm(app_config: &mut AppConfig, folder_name: &String) {
 
                 info!("wallaper_file: {wallpaper_id}");
                 if fs::metadata(&wallpaper_file).is_ok() {
-                    info!("5");
                     let target_path = Path::new(&app_config.sddm.target_path);
 
                     fs::copy(&wallpaper_file, target_path).expect("Can not copy to sddm path!");

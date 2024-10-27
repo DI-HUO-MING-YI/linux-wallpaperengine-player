@@ -1,18 +1,16 @@
 [general]
-current_wallpaper_id = "3146327433"
-# interval = 60# mode = 1
-# 循环模式：1=顺序播放, 2=随机, 3=随机不重复
-# 更换间隔时间（秒）
-# interval = 6 # 更换间隔时间（秒）
+current_wallpaper_id = "3034892752"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
 skipped_types = ["application"]
 play_list_name = "test"
 wallpapers_dir = "/home/narcissus/.local/share/Steam/steamapps/workshop/content/431960/"
 wallpaperengine_config_file = "/home/narcissus/.local/share/Steam/steamapps/common/wallpaper_engine/config.json"
+min_delay = 10
+max-delay = 1200
 
 [sddm]
-pre_sddm_wallpaper_id = "2867985699"
+pre_sddm_wallpaper_id = "2973586047"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
 
 [play_command]

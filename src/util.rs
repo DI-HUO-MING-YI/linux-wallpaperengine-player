@@ -42,3 +42,7 @@ pub fn extract_last_directory_name(file_path: &str) -> Option<String> {
     }
     None
 }
+
+pub fn secs_to_nanos(secs: f64) -> u64 {
+    (secs * 1_000_000_000.0) as u64
+}
