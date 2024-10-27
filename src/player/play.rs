@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::Child;
 use std::{thread, time};
 
-use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
+use crate::player::config::wallpaperengine_config::{Playlist, WallpaperEngineConfig};
 use crate::player::wallpaperengine;
 use crate::util::kill_process;
 
@@ -27,14 +27,14 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
         .current_wallpaper_id
         .clone()
         .unwrap_or("".to_string());
-    let mut has_loaded_current_wallpaper = current_wallpaper_id == "";
     loop {
         let playlist = wallpaper_engine_config.load_playlist(playlist_name);
+        let mut should_play = playlist.beginfirst || current_wallpaper_id == "";
         let videosequence = playlist.videosequence;
         for wallpaper_id in playlist.wallpaper_ids.iter() {
-            if !has_loaded_current_wallpaper {
+            if !should_play {
                 if &current_wallpaper_id == wallpaper_id {
-                    has_loaded_current_wallpaper = true;
+                    should_play = true;
                 } else {
                     continue;
                 }
@@ -88,6 +88,6 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
                 thread::sleep(time::Duration::from_secs((playlist.delay * 60) as u64));
             }
         }
-        has_loaded_current_wallpaper = true;
+        should_play = true;
     }
 }

@@ -24,6 +24,7 @@ pub struct Playlist {
     pub order: String,
     pub delay: u64,
     pub videosequence: bool,
+    pub beginfirst: bool,
 }
 
 #[derive(Clone)]
@@ -77,6 +78,7 @@ impl WallpaperEngineConfig {
         let delay = Self::get_playlist_delay(settings);
         let mode = Self::get_playlist_mode(settings);
         let videosequence = Self::get_playlist_videosequence(settings);
+        let beginfirst = Self::get_playlist_beginfirst(settings);
 
         let mut wallpaper_ids: Vec<String> = Self::get_wallpaper_files(playlist);
         if order == "random" {
@@ -90,6 +92,7 @@ impl WallpaperEngineConfig {
             order,
             delay,
             videosequence,
+            beginfirst,
         }
     }
 
@@ -192,9 +195,12 @@ impl WallpaperEngineConfig {
     fn get_playlist_videosequence(settings: &Value) -> bool {
         settings
             .get("videosequence")
-            .expect("Node videosequence not found!")
-            .as_bool()
-            .expect("Node videosequence not found!")
+            .map_or(false, |it| it.as_bool().unwrap_or(false))
+    }
+    fn get_playlist_beginfirst(settings: &Value) -> bool {
+        settings
+            .get("beginfirst")
+            .map_or(false, |it| it.as_bool().unwrap_or(false))
     }
 
     pub fn get_wallpaper_fodler(&self, folder_name: &str) -> Option<Folder> {
