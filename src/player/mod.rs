@@ -1,7 +1,8 @@
 mod check;
 mod config;
 mod play;
-mod wallpaper;
+mod sddm;
+mod wallpaperengine;
 mod watch;
 
 use check::check;
@@ -9,6 +10,7 @@ use clap::{Arg, Command};
 use config::app_config::AppConfig;
 use fern::Dispatch;
 use play::play;
+use sddm::sddm;
 use watch::watch;
 
 pub fn run() {
@@ -28,6 +30,9 @@ pub fn run() {
     } else if let Some(watch_matches) = matches.subcommand_matches("watch") {
         let profile_name = watch_matches.get_one::<String>("profile").unwrap();
         watch(&app_config, profile_name);
+    } else if let Some(sddm_matches) = matches.subcommand_matches("sddm") {
+        let folder_name = sddm_matches.get_one::<String>("folder").unwrap();
+        sddm(&mut app_config, folder_name);
     }
 }
 
@@ -42,12 +47,21 @@ fn register_command() -> clap::ArgMatches {
         )
         .subcommand(Command::new("check").about("Execute check function"))
         .subcommand(
+            Command::new("sddm").about("Execute check function").arg(
+                Arg::new("folder")
+                    .long("folder")
+                    .value_parser(clap::value_parser!(String))
+                    .required(true)
+                    .help("Folder name from wallpaperengine"),
+            ),
+        )
+        .subcommand(
             Command::new("play").about("Execute play function").arg(
                 Arg::new("playlist")
                     .long("playlist")
                     .value_parser(clap::value_parser!(String))
                     .required(true)
-                    .help("Playlist file path"),
+                    .help("Playlist name from wallpaperengine"),
             ),
         )
         .subcommand(
@@ -56,7 +70,7 @@ fn register_command() -> clap::ArgMatches {
                     .long("profile")
                     .value_parser(clap::value_parser!(String))
                     .required(true)
-                    .help("Profile file path"),
+                    .help("Profile name from wallpaperengine"),
             ),
         )
         .subcommand_required(true)

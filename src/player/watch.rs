@@ -4,11 +4,11 @@ use log::info;
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 
 use crate::{
-    player::{config::wallpaperengine_config::WallpaperEngineConfig, wallpaper::load_wallpaper},
+    player::{config::wallpaperengine_config::WallpaperEngineConfig, wallpaperengine::load_wallpaper},
     util::kill_process,
 };
 
-use super::{config::app_config::AppConfig, wallpaper::kill_all_wallpaperengine_process};
+use super::{config::app_config::AppConfig, wallpaperengine::kill_all_wallpaperengine_process};
 
 pub fn watch(app_config: &AppConfig, profile_name: &String) {
     info!("Watch wallpaper profile {profile_name} new");

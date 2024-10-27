@@ -1,5 +1,5 @@
 pub(crate) use std::fs;
-use std::path::Path;
+use std::{clone, path::Path};
 
 use rand::seq::SliceRandom;
 use serde::Deserialize;
@@ -10,7 +10,6 @@ use crate::util::extract_last_directory_name;
 #[derive(Debug, Deserialize)]
 pub struct WallpaperEngineConfig {
     pub source: Value,
-    pub playlist: Option<Playlist>,
     pub profile: Option<Profile>,
 }
 
@@ -19,7 +18,6 @@ pub struct Profile {
     pub wallpaper_id: String,
 }
 
-#[derive(Debug, Deserialize)]
 pub struct Playlist {
     pub wallpaper_ids: Vec<String>,
     pub mode: String,
@@ -28,6 +26,7 @@ pub struct Playlist {
     pub videosequence: bool,
 }
 
+#[derive(Clone)]
 pub struct Folder {
     pub items: Vec<String>,
     pub title: String,
@@ -45,7 +44,6 @@ impl WallpaperEngineConfig {
             ));
         Self {
             source: config,
-            playlist: None,
             profile: None,
         }
     }
@@ -72,7 +70,7 @@ impl WallpaperEngineConfig {
         self.profile = Some(Profile { wallpaper_id });
     }
 
-    pub fn load_playlist(&mut self, playlist_name: &String) {
+    pub fn load_playlist(&self, playlist_name: &String) -> Playlist {
         let playlist = self.get_playlist(playlist_name);
         let settings = playlist.get("settings").expect("Node settings not found!");
         let order = Self::get_playlist_order(settings);
@@ -86,13 +84,13 @@ impl WallpaperEngineConfig {
             wallpaper_ids.shuffle(&mut rng);
         }
 
-        self.playlist = Some(Playlist {
+        Playlist {
             wallpaper_ids,
             mode,
             order,
             delay,
             videosequence,
-        });
+        }
     }
 
     pub fn get_folders(&self) -> Vec<Folder> {
@@ -197,5 +195,12 @@ impl WallpaperEngineConfig {
             .expect("Node videosequence not found!")
             .as_bool()
             .expect("Node videosequence not found!")
+    }
+
+    pub fn get_wallpaper_fodler(&self, folder_name: &str) -> Option<Folder> {
+        self.get_folders()
+            .iter()
+            .find(|f| f.title == folder_name)
+            .cloned()
     }
 }

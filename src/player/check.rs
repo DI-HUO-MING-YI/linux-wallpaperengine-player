@@ -5,7 +5,7 @@ use log::info;
 use serde_json::{json, Map, Value};
 
 use crate::{
-    player::wallpaper::{kill_all_wallpaperengine_process, load_wallpaper},
+    player::wallpaperengine::{kill_all_wallpaperengine_process, load_wallpaper},
     util::kill_process,
 };
 
@@ -167,6 +167,10 @@ fn check_items(folder: &Folder, config: &AppConfig) -> (Vec<String>, Vec<String>
             continue;
         }
         let mut processes = load_wallpaper(wallpapers_path, &wallpaper_id, &config.play_command);
+
+        if processes.is_empty() {
+            continue;
+        }
         loop {
             input = String::new();
             info!("Whether to pick this wallpaper: {wallpaper_id}? (y/n)");

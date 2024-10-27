@@ -7,8 +7,9 @@ use std::process::{Child, Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;
 
-use log::{error, info};
+use log::{info, warn};
 use nix::libc::setpgid;
+use serde_json::Value;
 
 use super::config::app_config::PlayCommandConfig;
 
@@ -52,7 +53,7 @@ pub fn load_wallpaper(
         }
         pids
     } else {
-        error!("Wallpaper {} not found", wallpaper_path.to_str().unwrap());
+        warn!("Wallpaper {} not found", wallpaper_path.to_str().unwrap());
         vec![]
     }
 }
@@ -149,4 +150,28 @@ pub fn get_video_duration(file_path: &str) -> f64 {
                     .map_or_else(|_| 0.0, |it| it.parse::<f64>().unwrap_or(0.0))
             },
         )
+}
+
+pub fn is_video_wallpaper(project_json: &str) -> bool {
+    let project_json = fs::read_to_string(Path::new(&project_json)).unwrap_or(String::new());
+    let project_type =
+        serde_json::from_str::<Value>(&project_json).map_or("unknown".to_string(), |j| {
+            j.get("type")
+                .unwrap()
+                .as_str()
+                .unwrap_or(&"unknown".to_string())
+                .to_string()
+        });
+    project_type.to_lowercase().trim() == "video"
+}
+
+pub fn get_wallpaper_file(project_json: &str) -> String {
+    let project_json = fs::read_to_string(Path::new(&project_json)).unwrap_or(String::new());
+    serde_json::from_str::<Value>(&project_json).map_or("unknown".to_string(), |j| {
+        j.get("file")
+            .unwrap()
+            .as_str()
+            .unwrap_or(&"unknown".to_string())
+            .to_string()
+    })
 }
