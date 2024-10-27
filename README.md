@@ -91,8 +91,19 @@ cargo run -- --play --playlist test_p_1
 
 4. the wallpaper will display now.
 5. you can pick some wallpapers and save playlist with the same name.
-6. rerun cargo run to apply new playlist settings.  
-   **_\*auto rerun is comming soon_**
+6. rerun cargo run to apply new playlist settings.
+
+- ### set sddm video background
+  just run :
+
+```bash
+
+cargo run -- --sddm --folder test_f_1
+```
+
+#### NOTE:
+
+**_\* Only for this sddm theme: [theme](https://github.com/DI-HUO-MING-YI/sddm-themes)_**
 
 ## Configration
 
