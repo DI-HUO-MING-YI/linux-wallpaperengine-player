@@ -3,6 +3,15 @@ use std::{process::Child, thread::sleep, time::Duration};
 
 use nix::libc::{killpg, SIGKILL};
 
+// const MSG_SIZE: usize = 256;
+// const MSG_TYPE: i64 = 1;
+
+#[repr(C)]
+pub struct Message {
+    pub mtype: i64,
+    pub mtext: [u8; 256],
+}
+
 pub fn kill_process(process: &mut Child) {
     let pid = process.id();
     unsafe {

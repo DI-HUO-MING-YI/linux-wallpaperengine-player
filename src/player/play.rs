@@ -1,10 +1,12 @@
 use log::info;
-use std::path::{Path, PathBuf};
+use std::collections::VecDeque;
+use std::path::Path;
 use std::process::Child;
-use std::{thread, time};
+use std::time;
 
-use crate::player::config::wallpaperengine_config::{Playlist, WallpaperEngineConfig};
-use crate::player::wallpaperengine;
+use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
+use crate::player::control;
+use crate::player::wallpaperengine::{self, WallpaperSwitchMode};
 use crate::util::{kill_process, secs_to_nanos};
 
 use super::config::app_config::AppConfig;
@@ -22,90 +24,68 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
     let mut pre_processes: Vec<Child> = vec![];
     let current_wallpaper = app_config.get_current_wallpaper();
     let playlist = wallpaper_engine_config.load_playlist(playlist_name, &current_wallpaper);
-    let switch_mod = WallpaperSwitchMode::new(&playlist);
+    let switch_mode = WallpaperSwitchMode::new(&playlist);
     let delay = playlist.delay;
     let (min_delay, max_delay) = app_config.get_delay_range();
     info!("play wallpaper list {playlist_name} now!");
-    loop {
-        for wallpaper_id in playlist.wallpaper_ids.iter() {
-            let wallpaper_dir = wallpapers_dir.join(&wallpaper_id);
-            let project_json = wallpaper_dir.join("project.json");
+    let mut play_queue = VecDeque::from(playlist.wallpaper_ids);
+    while let Some(wallpaper_id) = play_queue.pop_front() {
+        let wallpaper_dir = wallpapers_dir.join(&wallpaper_id);
+        let project_json = wallpaper_dir.join("project.json");
 
-            if !wallpaper_dir.exists() || !project_json.exists() {
-                info!(
-                    "wallpaper {} not found in {}.",
-                    &wallpaper_id,
-                    wallpaper_dir.to_string_lossy()
-                );
-                continue;
-            }
-
-            let child_processes =
-                load_wallpaper(&wallpaper_dir, &wallpaper_id, &app_config.play_command);
-
-            if child_processes.is_empty() {
-                continue;
-            }
-
-            app_config.save_current_wallpaper(&wallpaper_id);
-            for p in pre_processes[..].as_mut().into_iter() {
-                info!("Try to kill process: {:#?}!", &p.id());
-                kill_process(p);
-            }
-            pre_processes = child_processes;
-
-            wait_for_delay(
-                &switch_mod,
-                &delay,
-                &project_json,
-                &wallpaper_dir,
-                min_delay,
-                max_delay,
-            )
+        if !wallpaper_dir.exists() || !project_json.exists() {
+            info!(
+                "wallpaper {} not found in {}.",
+                &wallpaper_id,
+                wallpaper_dir.to_string_lossy()
+            );
+            continue;
         }
-    }
-}
 
-enum WallpaperSwitchMode {
-    Timer,
-    Videosequence,
-}
+        play_queue.push_back(wallpaper_id.clone());
+        let child_processes =
+            load_wallpaper(&wallpaper_dir, &wallpaper_id, &app_config.play_command);
 
-impl WallpaperSwitchMode {
-    pub fn new(playlist: &Playlist) -> Self {
-        if playlist.videosequence {
-            WallpaperSwitchMode::Videosequence
-        } else if playlist.mode == "timer" {
-            WallpaperSwitchMode::Timer
-        } else {
-            WallpaperSwitchMode::Timer
+        if child_processes.is_empty() {
+            continue;
         }
-    }
-}
 
-fn wait_for_delay(
-    switch_mode: &WallpaperSwitchMode,
-    delay: &u64,
-    project_json: &PathBuf,
-    wallpaper_dir: &PathBuf,
-    min_delay: f64,
-    max_delay: f64,
-) {
-    let file_name = wallpaperengine::get_wallpaper_file(&project_json.to_str().unwrap());
+        app_config.save_current_wallpaper(&wallpaper_id);
+        for p in pre_processes[..].as_mut().into_iter() {
+            info!("Try to kill process: {:#?}!", &p.id());
+            kill_process(p);
+        }
+        pre_processes = child_processes;
 
-    match switch_mode {
-        WallpaperSwitchMode::Videosequence => {
-            if wallpaperengine::is_video_wallpaper(&project_json.to_str().unwrap()) {
-                let file = wallpaper_dir.join(file_name);
-                let delay = wallpaperengine::get_video_duration(file.to_str().unwrap());
-                let delay = secs_to_nanos(delay.min(max_delay).max(min_delay));
-                thread::sleep(time::Duration::from_nanos(delay));
-            } else {
-                thread::sleep(time::Duration::from_secs((delay * 60) as u64));
+        let file_name = wallpaperengine::get_wallpaper_file(&project_json.to_str().unwrap());
+        let delay = match &switch_mode {
+            WallpaperSwitchMode::Videosequence => {
+                if wallpaperengine::is_video_wallpaper(&project_json.to_str().unwrap()) {
+                    let file = wallpaper_dir.join(file_name);
+                    let delay = wallpaperengine::get_video_duration(file.to_str().unwrap());
+                    let delay = secs_to_nanos(delay.min(max_delay).max(min_delay));
+                    time::Duration::from_nanos(delay)
+                } else {
+                    time::Duration::from_secs(delay * 60)
+                }
             }
-        }
-        WallpaperSwitchMode::Timer => {
-            thread::sleep(time::Duration::from_secs((delay * 60) as u64));
+            WallpaperSwitchMode::Timer => time::Duration::from_secs(delay * 60),
+        };
+
+        if let Some(message) = control::wait_for_control_message(&delay) {
+            match message {
+                control::ControlAction::Next => continue,
+                control::ControlAction::Prev => {
+                    let pre_wallpaper = play_queue.pop_back().unwrap();
+                    play_queue.push_front(pre_wallpaper);
+                    let pre_wallpaper = play_queue.pop_back().unwrap();
+                    play_queue.push_front(pre_wallpaper);
+                }
+                control::ControlAction::Reload => {
+                    let pre_wallpaper = play_queue.pop_back().unwrap();
+                    play_queue.push_front(pre_wallpaper);
+                }
+            }
         }
     }
 }

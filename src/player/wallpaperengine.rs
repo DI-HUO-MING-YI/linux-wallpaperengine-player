@@ -12,7 +12,24 @@ use nix::libc::setpgid;
 use serde_json::Value;
 
 use super::config::app_config::PlayCommandConfig;
+use super::config::wallpaperengine_config::Playlist;
 
+pub enum WallpaperSwitchMode {
+    Timer,
+    Videosequence,
+}
+
+impl WallpaperSwitchMode {
+    pub fn new(playlist: &Playlist) -> Self {
+        if playlist.videosequence {
+            WallpaperSwitchMode::Videosequence
+        } else if playlist.mode == "timer" {
+            WallpaperSwitchMode::Timer
+        } else {
+            WallpaperSwitchMode::Timer
+        }
+    }
+}
 pub fn load_wallpaper(
     wallpaper_path: &Path,
     wallpaper_id: &str,

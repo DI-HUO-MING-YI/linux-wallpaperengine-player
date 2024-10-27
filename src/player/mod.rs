@@ -1,13 +1,15 @@
 mod check;
 mod config;
+mod control;
 mod play;
 mod sddm;
 mod wallpaperengine;
 mod watch;
 
 use check::check;
-use clap::{Arg, Command};
+use clap::{Arg, ArgGroup, Command};
 use config::app_config::AppConfig;
+use control::control;
 use fern::Dispatch;
 use play::play;
 use sddm::sddm;
@@ -33,6 +35,17 @@ pub fn run() {
     } else if let Some(sddm_matches) = matches.subcommand_matches("sddm") {
         let folder_name = sddm_matches.get_one::<String>("folder").unwrap();
         sddm(&mut app_config, folder_name);
+    } else if let Some(congtrol_matches) = matches.subcommand_matches("control") {
+        let action = if congtrol_matches.get_flag("next") {
+            Some("next")
+        } else if congtrol_matches.get_flag("prev") {
+            Some("prev")
+        } else if congtrol_matches.get_flag("reload") {
+            Some("reload")
+        } else {
+            None
+        };
+        control(action);
     }
 }
 
@@ -72,6 +85,36 @@ fn register_command() -> clap::ArgMatches {
                     .required(true)
                     .help("Profile name from wallpaperengine"),
             ),
+        )
+        .subcommand(
+            Command::new("control")
+                .about("Execute control function")
+                .arg(
+                    Arg::new("next")
+                        .long("next")
+                        .short('n')
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Play next wallpaper in the currnt playlist"),
+                )
+                .arg(
+                    Arg::new("prev")
+                        .long("prev")
+                        .short('p')
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Play prev wallpaper in the currnt playlist"),
+                )
+                .arg(
+                    Arg::new("reload")
+                        .long("reload")
+                        .short('r')
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Reload wallpaper in the currnt playlist"),
+                )
+                .group(
+                    ArgGroup::new("actions")
+                        .args(["next", "prev", "reload"])
+                        .required(true),
+                ),
         )
         .subcommand_required(true)
         .get_matches()
