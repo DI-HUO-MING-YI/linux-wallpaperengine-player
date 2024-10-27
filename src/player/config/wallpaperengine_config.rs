@@ -71,7 +71,7 @@ impl WallpaperEngineConfig {
         self.profile = Some(Profile { wallpaper_id });
     }
 
-    pub fn load_playlist(&self, playlist_name: &String) -> Playlist {
+    pub fn load_playlist(&self, playlist_name: &String, current_wallpaer_id: &str) -> Playlist {
         let playlist = self.get_playlist(playlist_name);
         let settings = playlist.get("settings").expect("Node settings not found!");
         let order = Self::get_playlist_order(settings);
@@ -85,6 +85,14 @@ impl WallpaperEngineConfig {
             let mut rng = rand::thread_rng();
             wallpaper_ids.shuffle(&mut rng);
         }
+
+        let wallpaper_ids = match wallpaper_ids.iter().position(|i| i == current_wallpaer_id) {
+            Some(index) => {
+                let (left, right) = wallpaper_ids.split_at(index);
+                [right, left].concat()
+            }
+            None => wallpaper_ids,
+        };
 
         Playlist {
             wallpaper_ids,

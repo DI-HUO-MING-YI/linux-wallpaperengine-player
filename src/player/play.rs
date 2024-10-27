@@ -1,5 +1,6 @@
 use log::info;
-use std::path::Path;
+use nix::libc::wait;
+use std::path::{Path, PathBuf};
 use std::process::Child;
 use std::{thread, time};
 
@@ -27,18 +28,11 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
         .current_wallpaper_id
         .clone()
         .unwrap_or("".to_string());
+    let playlist = wallpaper_engine_config.load_playlist(playlist_name, &current_wallpaper_id);
+    let switch_mod = WallpaperSwitchMode::new(&playlist);
+    let delay = playlist.delay;
     loop {
-        let playlist = wallpaper_engine_config.load_playlist(playlist_name);
-        let mut should_play = playlist.beginfirst || current_wallpaper_id == "";
-        let videosequence = playlist.videosequence;
         for wallpaper_id in playlist.wallpaper_ids.iter() {
-            if !should_play {
-                if &current_wallpaper_id == wallpaper_id {
-                    should_play = true;
-                } else {
-                    continue;
-                }
-            }
             let wallpaper_dir = wallpapers_dir.join(&wallpaper_id);
             let project_json = wallpaper_dir.join("project.json");
 
@@ -50,8 +44,6 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
                 );
                 continue;
             }
-
-            let file_name = wallpaperengine::get_wallpaper_file(&project_json.to_str().unwrap());
 
             let child_processes =
                 load_wallpaper(&wallpaper_dir, &wallpaper_id, &app_config.play_command);
@@ -67,27 +59,48 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
             }
             pre_processes = child_processes;
 
-            if videosequence {
-                let duration: f64 =
-                    if wallpaperengine::is_video_wallpaper(&project_json.to_str().unwrap()) {
-                        let file = wallpaper_dir.join(file_name);
-                        wallpaperengine::get_video_duration(file.to_str().unwrap())
-                    } else {
-                        0.0
-                    };
-                // thread::sleep(time::Duration::from_secs(max(
-                //     (playlist.delay * 60) as u64,
-                //     duration as u64,
-                // )));
-                if duration == 0.0 {
-                    thread::sleep(time::Duration::from_secs((playlist.delay * 60) as u64));
-                } else {
-                    thread::sleep(time::Duration::from_secs(duration as u64));
-                }
+            wait_1(&switch_mod, &delay, &project_json, &wallpaper_dir)
+        }
+    }
+}
+
+enum WallpaperSwitchMode {
+    Timer,
+    Videosequence,
+}
+
+impl WallpaperSwitchMode {
+    pub fn new(playlist: &Playlist) -> Self {
+        if playlist.videosequence {
+            WallpaperSwitchMode::Videosequence
+        } else if playlist.mode == "timer" {
+            WallpaperSwitchMode::Timer
+        } else {
+            WallpaperSwitchMode::Timer
+        }
+    }
+}
+
+fn wait_1(
+    switch_mode: &WallpaperSwitchMode,
+    delay: &u64,
+    project_json: &PathBuf,
+    wallpaper_dir: &PathBuf,
+) {
+    let file_name = wallpaperengine::get_wallpaper_file(&project_json.to_str().unwrap());
+
+    match switch_mode {
+        WallpaperSwitchMode::Videosequence => {
+            if wallpaperengine::is_video_wallpaper(&project_json.to_str().unwrap()) {
+                let file = wallpaper_dir.join(file_name);
+                let duration = wallpaperengine::get_video_duration(file.to_str().unwrap());
+                thread::sleep(time::Duration::from_secs(duration as u64));
             } else {
-                thread::sleep(time::Duration::from_secs((playlist.delay * 60) as u64));
+                thread::sleep(time::Duration::from_secs((delay * 60) as u64));
             }
         }
-        should_play = true;
+        WallpaperSwitchMode::Timer => {
+            thread::sleep(time::Duration::from_secs((delay * 60) as u64));
+        }
     }
 }
