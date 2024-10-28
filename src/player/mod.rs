@@ -47,6 +47,10 @@ pub fn run() {
             Some("prev")
         } else if congtrol_matches.get_flag("reload") {
             Some("reload")
+        } else if congtrol_matches.get_flag("stop") {
+            Some("stop")
+        } else if congtrol_matches.get_flag("continue") {
+            Some("continue")
         } else {
             None
         };
@@ -115,9 +119,23 @@ fn register_command() -> clap::ArgMatches {
                         .action(clap::ArgAction::SetTrue)
                         .help("Reload wallpaper in the currnt playlist"),
                 )
+                .arg(
+                    Arg::new("stop")
+                        .long("stop")
+                        .short('s')
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Stop wallpaper in the currnt playlist"),
+                )
+                .arg(
+                    Arg::new("continue")
+                        .long("continue")
+                        .short('c')
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Continue wallpaper in the currnt playlist"),
+                )
                 .group(
                     ArgGroup::new("actions")
-                        .args(["next", "prev", "reload"])
+                        .args(["next", "prev", "reload", "stop", "continue"])
                         .required(true),
                 ),
         )

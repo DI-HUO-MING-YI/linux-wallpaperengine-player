@@ -72,6 +72,7 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
             WallpaperSwitchMode::Timer => time::Duration::from_secs(delay * 60),
         };
 
+        let mut stopped = false;
         if let Some(message) = control::wait_for_control_message(&delay) {
             match message {
                 control::ControlAction::Next => continue,
@@ -84,6 +85,34 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
                 control::ControlAction::Reload => {
                     let pre_wallpaper = play_queue.pop_back().unwrap();
                     play_queue.push_front(pre_wallpaper);
+                }
+                control::ControlAction::Stop => stopped = true,
+                control::ControlAction::Continue => continue,
+            }
+        }
+
+        if stopped {
+            loop {
+                if let Some(message) =
+                    control::wait_for_control_message(&time::Duration::from_nanos(u64::MAX))
+                {
+                    match message {
+                        control::ControlAction::Next => break,
+                        control::ControlAction::Prev => {
+                            let pre_wallpaper = play_queue.pop_back().unwrap();
+                            play_queue.push_front(pre_wallpaper);
+                            let pre_wallpaper = play_queue.pop_back().unwrap();
+                            play_queue.push_front(pre_wallpaper);
+                            break;
+                        }
+                        control::ControlAction::Reload => {
+                            let pre_wallpaper = play_queue.pop_back().unwrap();
+                            play_queue.push_front(pre_wallpaper);
+                            continue;
+                        }
+                        control::ControlAction::Stop => continue,
+                        control::ControlAction::Continue => break,
+                    }
                 }
             }
         }

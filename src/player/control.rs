@@ -13,6 +13,8 @@ pub enum ControlAction {
     Next,
     Prev,
     Reload,
+    Stop,
+    Continue,
 }
 impl ControlAction {
     fn form(message_string: &str) -> Option<ControlAction> {
@@ -20,6 +22,8 @@ impl ControlAction {
             "next" => Some(ControlAction::Next),
             "prev" => Some(ControlAction::Prev),
             "reload" => Some(ControlAction::Reload),
+            "stop" => Some(ControlAction::Stop),
+            "continue" => Some(ControlAction::Continue),
             _ => None,
         }
     }
@@ -98,7 +102,7 @@ pub fn wait_for_control_message(delay: &time::Duration) -> Option<ControlAction>
             } else {
                 eprintln!("Error receiving message: {}", err);
             }
-            thread::sleep(time::Duration::from_millis(500));
+            thread::sleep(time::Duration::from_millis(100));
             continue;
         }
         let received_message = unsafe { CStr::from_ptr(msg.mtext.as_ptr() as *const i8) };
