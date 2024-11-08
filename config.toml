@@ -1,5 +1,5 @@
 [general]
-current_wallpaper_id = "3168223301"
+current_wallpaper_id = "3359996161"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
 skipped_types = ["application"]
@@ -10,7 +10,7 @@ min_delay = 30
 max-delay = 600
 
 [sddm]
-pre_sddm_wallpaper_id = "3092073914"
+pre_sddm_wallpaper_id = "3347915442"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
 
 [wallock]
@@ -31,7 +31,7 @@ screen_root = ["HDMI-A-1", "eDP-1"]
 # screen_root = ["eDP-1"]
 # window = true
 # window =
-fps = 240
+fps = 60
 # assets_dir =
 # screenshot = true
 # screenshot =
@@ -41,7 +41,7 @@ fps = 240
 # set_property =
 # no_fullscreen_pause = true
 # no_fullscreen_pause =
-disable_mouse = true
+# disable_mouse = true
 # disable_mouse =
 scaling = "fill"
 # scaling = "fit"

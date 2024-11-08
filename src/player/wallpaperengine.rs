@@ -130,6 +130,8 @@ fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id:
     if config.disable_mouse.unwrap_or_else(|| false) {
         command.arg("--disable-mouse");
     }
+    command.arg("--disable-web-security");
+    command.arg("--autoplay-policy=no-user-gesture-required");
 
     command.arg(wallpaper_id);
     command
