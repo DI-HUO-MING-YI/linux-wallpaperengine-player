@@ -2,10 +2,11 @@ use log::info;
 use std::collections::VecDeque;
 use std::path::Path;
 use std::process::Child;
+use std::str::FromStr;
 use std::time;
 
 use crate::player::config::wallpaperengine_config::WallpaperEngineConfig;
-use crate::player::control;
+use crate::player::control::{self, ControlAction, PlayState};
 use crate::player::wallpaperengine::{self, WallpaperSwitchMode};
 use crate::util::{kill_process, secs_to_nanos};
 
@@ -72,8 +73,14 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
             WallpaperSwitchMode::Timer => time::Duration::from_secs(delay * 60),
         };
 
-        let mut stopped = false;
+        let mut stopped = app_config
+            .general
+            .play_state
+            .clone()
+            .map_or(false, |state| PlayState::is_stopped(&state));
+
         if let Some(message) = control::wait_for_control_message(&delay) {
+            app_config.save_play_state(&message);
             match message {
                 control::ControlAction::Next => continue,
                 control::ControlAction::Prev => {
@@ -96,6 +103,7 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
                 if let Some(message) =
                     control::wait_for_control_message(&time::Duration::from_nanos(u64::MAX))
                 {
+                    app_config.save_play_state(&message);
                     match message {
                         control::ControlAction::Next => break,
                         control::ControlAction::Prev => {

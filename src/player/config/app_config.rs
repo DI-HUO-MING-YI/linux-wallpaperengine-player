@@ -5,6 +5,8 @@ use config::{Config, File};
 use regex::Regex;
 use serde::Deserialize;
 
+use crate::player::control::{self, ControlAction, PlayState};
+
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {
     #[serde(skip)]
@@ -31,6 +33,7 @@ pub struct WallockConfig {
 pub struct GeneralConfig {
     pub mode: Option<String>,
     pub current_wallpaper_id: Option<String>,
+    pub play_state: Option<String>,
     pub min_delay: Option<f64>,
     pub max_delay: Option<f64>,
     pub log_file: Option<String>,
@@ -93,6 +96,19 @@ impl AppConfig {
         );
         fs::write(&self.config_path, modified_contents.as_bytes())
             .expect("Can not write into config file");
+    }
+
+    pub fn save_play_state(&mut self, action: &control::ControlAction) {
+        let contents = fs::read_to_string(&self.config_path).expect("Can not open config file.");
+
+        let re = Regex::new(r#"(?m)^play_state\s*=\s*"(.*)"#).unwrap();
+
+        let new_state = ControlAction::to_state(self.general.play_state.clone(), &action);
+        let modified_contents =
+            re.replace_all(&contents, &format!(r#"play_state = "{}""#, &new_state));
+        fs::write(&self.config_path, modified_contents.as_bytes())
+            .expect("Can not write into config file");
+        self.general.play_state = Some(new_state.to_string());
     }
 
     pub fn save_pre_sddm_wallpaper(&mut self, wallpaper_id: &String) {

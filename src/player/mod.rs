@@ -42,15 +42,15 @@ pub fn run() {
         wallock(&mut app_config, folder_name);
     } else if let Some(congtrol_matches) = matches.subcommand_matches("control") {
         let action = if congtrol_matches.get_flag("next") {
-            Some("next")
+            Some("Next")
         } else if congtrol_matches.get_flag("prev") {
-            Some("prev")
+            Some("Prev")
         } else if congtrol_matches.get_flag("reload") {
-            Some("reload")
+            Some("Reload")
         } else if congtrol_matches.get_flag("stop") {
-            Some("stop")
+            Some("Stop")
         } else if congtrol_matches.get_flag("continue") {
-            Some("continue")
+            Some("Continue")
         } else {
             None
         };

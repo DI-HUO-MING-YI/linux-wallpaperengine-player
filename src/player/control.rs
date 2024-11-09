@@ -1,14 +1,19 @@
 use core::time;
 use std::{
     ffi::{CStr, CString},
-    io, thread,
+    io,
+    str::FromStr,
+    thread,
     time::Instant,
 };
 
 use log::info;
 use nix::libc::{self, IPC_CREAT, IPC_NOWAIT};
+use strum_macros::{Display, EnumString};
 
 use crate::util::Message;
+
+#[derive(EnumString, Display)]
 pub enum ControlAction {
     Next,
     Prev,
@@ -16,16 +21,29 @@ pub enum ControlAction {
     Stop,
     Continue,
 }
+
 impl ControlAction {
-    fn form(message_string: &str) -> Option<ControlAction> {
-        match message_string {
-            "next" => Some(ControlAction::Next),
-            "prev" => Some(ControlAction::Prev),
-            "reload" => Some(ControlAction::Reload),
-            "stop" => Some(ControlAction::Stop),
-            "continue" => Some(ControlAction::Continue),
-            _ => None,
+    pub fn to_state(current_state: Option<String>, action: &ControlAction) -> PlayState {
+        match action {
+            ControlAction::Stop => PlayState::Stopped,
+            ControlAction::Continue => PlayState::Playing,
+            _ => current_state.and_then(|state| PlayState::from_str(&state).ok()).unwrap_or(PlayState::Playing),
         }
+    }
+
+    pub fn form(message_string: &str) -> Option<ControlAction> {
+        ControlAction::from_str(message_string).map_or(None, |action| Some(action))
+    }
+}
+
+#[derive(Clone, Debug, EnumString, Display)]
+pub enum PlayState {
+    Playing,
+    Stopped,
+}
+impl PlayState {
+    pub(crate) fn is_stopped(state_str: &str) -> bool {
+        state_str == PlayState::Stopped.to_string()
     }
 }
 
