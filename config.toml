@@ -1,5 +1,6 @@
 [general]
-current_wallpaper_id = "3359620231"
+current_wallpaper_id = "3340692395"
+current_wallpaper_name = "Hoshino dancing with Doodle song - Blue Archive|星野 Doodle dance"
 play_state = "Playing"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
@@ -11,7 +12,7 @@ min_delay = 30
 max-delay = 600
 
 [sddm]
-pre_sddm_wallpaper_id = "3343393951"
+pre_sddm_wallpaper_id = "3049651546"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
 
 [wallock]

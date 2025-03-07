@@ -85,7 +85,7 @@ impl AppConfig {
             self.general.max_delay.unwrap_or(f64::MAX),
         )
     }
-    pub fn save_current_wallpaper(&mut self, wallpaper_id: &String) {
+    pub fn save_current_wallpaper(&mut self, wallpaper_id: &String, wallpaper_name: &String) {
         let contents = fs::read_to_string(&self.config_path).expect("Can not open config file.");
 
         let re = Regex::new(r#"(?m)^current_wallpaper_id\s*=\s*"(.*)"#).unwrap();
@@ -93,6 +93,13 @@ impl AppConfig {
         let modified_contents = re.replace_all(
             &contents,
             &format!(r#"current_wallpaper_id = "{}""#, wallpaper_id),
+        );
+
+        let re = Regex::new(r#"(?m)^current_wallpaper_name\s*=\s*"(.*)"#).unwrap();
+
+        let modified_contents = re.replace_all(
+            &modified_contents,
+            &format!(r#"current_wallpaper_name = "{}""#, wallpaper_name),
         );
         fs::write(&self.config_path, modified_contents.as_bytes())
             .expect("Can not write into config file");

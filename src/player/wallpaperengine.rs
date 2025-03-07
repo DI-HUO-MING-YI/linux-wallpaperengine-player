@@ -194,3 +194,14 @@ pub fn get_wallpaper_file(project_json: &str) -> String {
             .to_string()
     })
 }
+
+pub fn get_wallpaper_name(project_json: &str) -> String {
+    let project_json = fs::read_to_string(Path::new(&project_json)).unwrap_or(String::new());
+    serde_json::from_str::<Value>(&project_json).map_or("unknown".to_string(), |j| {
+        j.get("title")
+            .unwrap()
+            .as_str()
+            .unwrap_or(&"unknown".to_string())
+            .to_string()
+    })
+}

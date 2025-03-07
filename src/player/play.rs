@@ -51,7 +51,8 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
             continue;
         }
 
-        app_config.save_current_wallpaper(&wallpaper_id);
+        let title = wallpaperengine::get_wallpaper_name(&project_json.to_str().unwrap());
+        app_config.save_current_wallpaper(&wallpaper_id, &title);
         for p in pre_processes[..].as_mut().into_iter() {
             info!("Try to kill process: {:#?}!", &p.id());
             kill_process(p);
