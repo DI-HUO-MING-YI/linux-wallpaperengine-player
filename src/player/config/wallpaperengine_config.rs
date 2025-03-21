@@ -172,8 +172,9 @@ impl WallpaperEngineConfig {
             .expect("Node items is not an array")
             .iter()
             .map(|item| item.as_str().expect("Item is not a string!").to_string())
+            .filter(|path| !&path.is_empty())
             .map(|path| {
-                extract_last_directory_name(&path).expect("Wallpaper path has no wallpaper id!")
+                extract_last_directory_name(&path).expect(&format!("Wallpaper path <{}> has no wallpaper id!", path))
             })
             .collect()
     }

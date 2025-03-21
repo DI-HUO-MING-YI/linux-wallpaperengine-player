@@ -42,6 +42,7 @@ pub struct GeneralConfig {
     pub play_list_name: String,
     pub wallpapers_dir: String,
     pub wallpaperengine_config_file: String,
+    pub played_history_db: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -99,7 +100,10 @@ impl AppConfig {
 
         let modified_contents = re.replace_all(
             &modified_contents,
-            &format!(r#"current_wallpaper_name = "{}""#, wallpaper_name.replace("\"", "\\\"")),
+            &format!(
+                r#"current_wallpaper_name = "{}""#,
+                wallpaper_name.replace("\"", "\\\"")
+            ),
         );
         fs::write(&self.config_path, modified_contents.as_bytes())
             .expect("Can not write into config file");

@@ -18,3 +18,4 @@ chrono = "0.4.38"
 regex = "1.11.1"
 strum = "0.26.3"
 strum_macros = "0.26.4"
+rusqlite = { version = "0.30.0", features = ["bundled"] }

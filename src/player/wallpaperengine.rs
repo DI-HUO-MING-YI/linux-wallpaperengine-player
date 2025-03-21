@@ -124,15 +124,16 @@ fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id:
     //             .arg(format!("{}={}", key, value));
     //     }
     // }
-    if config.no_fullscreen_pause.unwrap_or_else(|| false) {
-        command.arg("--no-fullscreen-pause");
-    }
+    // if config.no_fullscreen_pause.unwrap_or_else(|| false) {
+    //     command.arg("--no-fullscreen-pause");
+    // }
     if config.disable_mouse.unwrap_or_else(|| false) {
         command.arg("--disable-mouse");
     }
     command.arg("--disable-web-security");
     command.arg("--autoplay-policy=no-user-gesture-required");
 
+    command.arg("--no-fullscreen-pause");
     command.arg(wallpaper_id);
     command
 }

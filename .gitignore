@@ -6,3 +6,4 @@ py/__pycache__
 venv
 __pycache__
 target
+played_history.db

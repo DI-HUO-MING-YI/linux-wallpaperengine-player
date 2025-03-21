@@ -12,10 +12,12 @@ use crate::util::{kill_process, secs_to_nanos};
 
 use super::config::app_config::AppConfig;
 use super::wallpaperengine::load_wallpaper;
+use crate::player::config::played_history::PlayedHistory;
 
 pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
     let wallpaperengine_config_file = app_config.general.wallpaperengine_config_file.clone();
     let wallpapers_dir = app_config.general.wallpapers_dir.clone();
+    let played_history_db = app_config.general.played_history_db.clone();
     let wallpapers_dir = Path::new(&wallpapers_dir);
 
     let wallpaper_engine_config =
@@ -30,6 +32,13 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
     let (min_delay, max_delay) = app_config.get_delay_range();
     info!("play wallpaper list {playlist_name} now!");
     let mut play_queue = VecDeque::from(playlist.wallpaper_ids);
+
+    // 初始化播放历史记录
+    let history = PlayedHistory::new(&played_history_db).expect(&format!(
+        "Failed to create history DB: {}",
+        &played_history_db
+    ));
+
     while let Some(wallpaper_id) = play_queue.pop_front() {
         let wallpaper_dir = wallpapers_dir.join(&wallpaper_id);
         let project_json = wallpaper_dir.join("project.json");
@@ -51,8 +60,14 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
             continue;
         }
 
-        let title = wallpaperengine::get_wallpaper_name(&project_json.to_str().unwrap());
-        app_config.save_current_wallpaper(&wallpaper_id, &title);
+        let wallpaper_name = wallpaperengine::get_wallpaper_name(&project_json.to_str().unwrap());
+        // 记录开始播放
+        history
+            .start_playing(&wallpaper_id, &wallpaper_name)
+            .expect("Failed to record play start");
+
+        app_config.save_current_wallpaper(&wallpaper_id, &wallpaper_name);
+
         for p in pre_processes[..].as_mut().into_iter() {
             info!("Try to kill process: {:#?}!", &p.id());
             kill_process(p);
@@ -83,8 +98,18 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
         if let Some(message) = control::wait_for_control_message(&delay) {
             app_config.save_play_state(&message);
             match message {
-                control::ControlAction::Next => continue,
+                control::ControlAction::Next => {
+                    // 记录中断播放
+                    history
+                        .change_playing(&wallpaper_id)
+                        .expect("Failed to record play change");
+                    continue;
+                }
                 control::ControlAction::Prev => {
+                    // 记录中断播放
+                    history
+                        .change_playing(&wallpaper_id)
+                        .expect("Failed to record play change");
                     let pre_wallpaper = play_queue.pop_back().unwrap();
                     play_queue.push_front(pre_wallpaper);
                     let pre_wallpaper = play_queue.pop_back().unwrap();
@@ -106,8 +131,18 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
                 {
                     app_config.save_play_state(&message);
                     match message {
-                        control::ControlAction::Next => break,
+                        control::ControlAction::Next => {
+                            // 记录中断播放
+                            history
+                                .change_playing(&wallpaper_id)
+                                .expect("Failed to record play complete");
+                            break;
+                        }
                         control::ControlAction::Prev => {
+                            // 记录中断播放
+                            history
+                                .change_playing(&wallpaper_id)
+                                .expect("Failed to record play complete");
                             let pre_wallpaper = play_queue.pop_back().unwrap();
                             play_queue.push_front(pre_wallpaper);
                             let pre_wallpaper = play_queue.pop_back().unwrap();
@@ -120,10 +155,21 @@ pub fn play(app_config: &mut AppConfig, playlist_name: &String) {
                             continue;
                         }
                         control::ControlAction::Stop => continue,
-                        control::ControlAction::Continue => break,
+                        control::ControlAction::Continue => {
+                            // 正常播放完成
+                            history
+                                .complete_playing(&wallpaper_id)
+                                .expect("Failed to record play complete");
+                            break;
+                        }
                     }
                 }
             }
+        } else {
+            // 正常播放完成
+            history
+                .complete_playing(&wallpaper_id)
+                .expect("Failed to record play complete");
         }
     }
 }

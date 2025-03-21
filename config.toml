@@ -1,7 +1,8 @@
 [general]
-current_wallpaper_id = "3340692395"
-current_wallpaper_name = "Hoshino dancing with Doodle song - Blue Archive|星野 Doodle dance"
+current_wallpaper_id = "3037399171"
+current_wallpaper_name = "GAMER ANIME GIRL"
 play_state = "Playing"
+played_history_db = "/home/narcissus/Workspace/wallpaperengine/linux-wallpaperengine-player/played_history.db"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 picked_types = ["video"]
 skipped_types = ["application"]
@@ -12,11 +13,12 @@ min_delay = 30
 max-delay = 600
 
 [sddm]
-pre_sddm_wallpaper_id = "3049651546"
+pre_sddm_wallpaper_id = "3071296529"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
 
 [wallock]
-pre_wallock_wallpaper_id = "3188441200"
+# pre_wallock_wallpaper_id = "3188441200"
+pre_wallock_wallpaper_id = "3186484858"
 target_path = "/home/narcissus/.wallpapers/"
 
 [play_command]
@@ -41,9 +43,9 @@ fps = 120
 # list_propertites =
 # set_property = ("" "")
 # set_property =
-# no_fullscreen_pause = true
+no_fullscreen_pause = true
 # no_fullscreen_pause =
-# disable_mouse = true
+disable_mouse = true
 # disable_mouse =
 scaling = "fill"
 # scaling = "fit"
