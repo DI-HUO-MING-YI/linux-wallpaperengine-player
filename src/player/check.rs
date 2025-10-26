@@ -155,6 +155,30 @@ fn get_pre_folder(folders: &Vec<Value>, title: &String, suffix: &str) -> Map<Str
     items
 }
 
+fn get_wallpaper_type(wallpapers_path: &Path, wallpaper_id: &String) -> Option<String> {
+    let project_json_path = wallpapers_path.join(wallpaper_id).join("project.json");
+    if !project_json_path.exists() {
+        return None;
+    }
+
+    match fs::read_to_string(&project_json_path) {
+        Ok(content) => {
+            match serde_json::from_str::<Value>(&content) {
+                Ok(json) => {
+                    if let Some(type_value) = json.get("type") {
+                        if let Some(type_str) = type_value.as_str() {
+                            return Some(type_str.to_lowercase());
+                        }
+                    }
+                    None
+                }
+                Err(_) => None,
+            }
+        }
+        Err(_) => None,
+    }
+}
+
 fn check_items(folder: &Folder, config: &AppConfig) -> (Vec<String>, Vec<String>, Vec<String>) {
     let wallpapers_path = Path::new(&config.general.wallpapers_dir);
     let mut input;
@@ -166,6 +190,21 @@ fn check_items(folder: &Folder, config: &AppConfig) -> (Vec<String>, Vec<String>
             skipped.push(wallpaper_id.clone());
             continue;
         }
+
+        // Check wallpaper type and pre-select based on config
+        if let Some(wallpaper_type) = get_wallpaper_type(wallpapers_path, wallpaper_id) {
+            if config.general.picked_types.contains(&wallpaper_type) {
+                info!("Auto-picking wallpaper {} of type '{}'", wallpaper_id, wallpaper_type);
+                picked.push(wallpaper_id.clone());
+                continue;
+            }
+            if config.general.skipped_types.contains(&wallpaper_type) {
+                info!("Auto-skipping wallpaper {} of type '{}'", wallpaper_id, wallpaper_type);
+                skipped.push(wallpaper_id.clone());
+                continue;
+            }
+        }
+
         let mut processes = load_wallpaper(wallpapers_path, &wallpaper_id, &config.play_command);
 
         if processes.is_empty() {
