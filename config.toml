@@ -13,7 +13,7 @@ min_delay = 30
 max-delay = 600
 
 [sddm]
-pre_sddm_wallpaper_id = "3071296529"
+pre_sddm_wallpaper_id = "3429792909"
 target_path = "/usr/share/sddm/themes/sdt/Backgrounds/background-video"
 
 [wallock]
@@ -50,4 +50,4 @@ disable_mouse = true
 scaling = "fill"
 # scaling = "fit"
 # scaling = "stretch"
-clamping = "border"
+clamp = "border"

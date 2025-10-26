@@ -63,7 +63,7 @@ pub struct PlayCommandConfig {
     pub no_fullscreen_pause: Option<bool>,
     pub disable_mouse: Option<bool>,
     pub scaling: Option<String>,
-    pub clamping: Option<String>,
+    pub clamp: Option<String>,
 }
 
 impl AppConfig {

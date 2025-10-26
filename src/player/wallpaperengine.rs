@@ -80,8 +80,8 @@ fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id:
     if let Some(scaling) = &config.scaling {
         command.arg("--scaling").arg(scaling);
     }
-    if let Some(clamping) = &config.clamping {
-        command.arg("--clamping").arg(clamping);
+    if let Some(clamp) = &config.clamp {
+        command.arg("--clamp").arg(clamp);
     }
     command.arg("--screen-root").arg(screen_root);
 
