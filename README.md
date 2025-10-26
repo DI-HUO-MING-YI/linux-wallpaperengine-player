@@ -7,6 +7,7 @@ A script tool for playing and checking live wallpapers with wallpaperengine and 
 - Pick and play a single wallpaper using Wallpaper Engine's UI.
 - Batch check wallpapers using Wallpaper Engine's folders.
 - Play wallpapers using a playlist.
+- Automatic wallpaper type checking during batch check (auto-pick/auto-skip based on configuration).
 
 ## Requirement
 
@@ -52,7 +53,7 @@ cargo run -- --watch --profile test_m_1
 1. create a new folder named test, and put wallpapers that you want to check.
    ![check_1](./documents/check_1.png)
    #### NOTE:
-   **_\* MUST CLOSE THE WALLPAPER ENGINE_**  
+   **_\* MUST CLOSE THE WALLPAPER ENGINE_**
    **_\* It is recommend to close it using Steam stop function_**
 2. run cargo run to batch check. chose which fold to check, and play wallpapers one by one.
    ![check_2](./documents/check_2.png)
@@ -60,9 +61,11 @@ cargo run -- --watch --profile test_m_1
 
    #### NOTE:
 
-   **_\* folders named with suffix "\_piecked" and "\_skipped" will not be checked_**  
-   **_\* type y / n to check a wallpaper, if y , the wallpaper will be moved to a new folder named test_picked_**  
-   **_\* if n, the wallpaper will be moved to a new folder named test_skipped_**  
+   **_\* folders named with suffix "\_piecked" and "\_skipped" will not be checked_**
+   **_\* wallpapers with types in `picked_types` configuration will be automatically picked_**
+   **_\* wallpapers with types in `skipped_types` configuration will be automatically skipped_**
+   **_\* type y / n to check a wallpaper, if y , the wallpaper will be moved to a new folder named test_picked_**
+   **_\* if n, the wallpaper will be moved to a new folder named test_skipped_**
    **_\* if type nothing and just press enter, the wallpaper will not be moved_**
 
 3. test_skipped and test_picked will be created and wallpapers will be moved to them by your choise.
@@ -105,7 +108,21 @@ cargo run -- --sddm --folder test_f_1
 
 **_\* Only for this sddm theme: [theme](https://github.com/DI-HUO-MING-YI/sddm-themes)_**
 
-## Configration
+## Configuration
+
+### Automatic wallpaper type checking
+
+The check functionality now supports automatic wallpaper type checking based on configuration. You can configure `picked_types` and `skipped_types` in your config.toml file:
+
+```toml
+[general]
+picked_types = ["video"]      # Wallpaper types to automatically pick
+skipped_types = ["application"]  # Wallpaper types to automatically skip
+```
+
+When running the check command, wallpapers with types matching `picked_types` will be automatically selected, and wallpapers with types matching `skipped_types` will be automatically skipped, saving you time during the checking process.
+
+Wallpapers with types not specified in either configuration will continue to use the standard interactive checking process.
 
 ## Roadmap
 
