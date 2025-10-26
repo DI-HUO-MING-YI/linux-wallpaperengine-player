@@ -38,10 +38,12 @@ Clone this repo, and just run using cargo run
 2. save as a profile with the name test_m_1
    ![watch_2](./documents/watch_2.png)
    ![watch_3](./documents/watch_3.png)
-3. run cargo run to start display wallpaper
+3. build as a release and run the bin to start display wallpaper
 
 ```bash
-cargo run -- --watch --profile test_m_1
+cargo build --release & ./target/release/linux-wallpaperengine-player watch --profile test_m_1
+
+
 ```
 
 4. the wallpaper will display now.
