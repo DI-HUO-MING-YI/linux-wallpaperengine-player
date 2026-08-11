@@ -84,6 +84,7 @@ fn build_command(config: &PlayCommandConfig, screen_root: &String, wallpaper_id:
         command.arg("--clamp").arg(clamp);
     }
     command.arg("--screen-root").arg(screen_root);
+    command.arg("--layer").arg("background"); // anchor below panels (waybar) regardless of startup order
 
     // [todo]: add silent
     // if i == 0 {
