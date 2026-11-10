@@ -45,6 +45,8 @@ pub fn run() {
             Some("OpenUi")
         } else if congtrol_matches.get_flag("mute") {
             Some("Mute")
+        } else if congtrol_matches.get_flag("shuffle") {
+            Some("Shuffle")
         } else {
             None
         };
@@ -137,11 +139,17 @@ fn register_command() -> clap::ArgMatches {
                         .action(clap::ArgAction::SetTrue)
                         .help("Toggle mute for all Waywallen renderers"),
                 )
+                .arg(
+                    Arg::new("shuffle")
+                        .long("shuffle")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Toggle the global queue between shuffle and sequential modes"),
+                )
                 .group(
                     ArgGroup::new("actions")
                         .args([
                             "next", "prev", "reload", "stop", "continue", "pause", "open-ui",
-                            "mute",
+                            "mute", "shuffle",
                         ])
                         .required(true),
                 ),

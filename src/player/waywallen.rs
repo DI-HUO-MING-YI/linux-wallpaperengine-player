@@ -49,6 +49,17 @@ pub fn toggle_mute() -> Result<()> {
     Ok(())
 }
 
+pub fn toggle_shuffle() -> Result<()> {
+    let connection = Connection::session().context("Failed to connect to the session bus")?;
+    let proxy = waywallen_proxy(&connection)?;
+    let current_mode: String = proxy.get_property("QueueMode")?;
+    let enable_shuffle = current_mode != "shuffle";
+    proxy.call::<_, _, ()>("SetShuffle", &(enable_shuffle,))?;
+    let current_mode: String = proxy.get_property("QueueMode")?;
+    println!("Waywallen queue mode: {current_mode}");
+    Ok(())
+}
+
 pub fn restart() -> Result<()> {
     let connection = Connection::session().context("Failed to connect to the session bus")?;
     let previous_pid = daemon_pid(&connection)?;

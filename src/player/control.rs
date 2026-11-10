@@ -15,6 +15,7 @@ pub enum ControlAction {
     Pause,
     OpenUi,
     Mute,
+    Shuffle,
 }
 
 pub fn control(action: Option<&str>) -> Result<()> {
@@ -31,6 +32,7 @@ pub fn control(action: Option<&str>) -> Result<()> {
         ControlAction::Pause => waywallen::toggle_pause(),
         ControlAction::OpenUi => waywallen::open_ui(),
         ControlAction::Mute => waywallen::toggle_mute(),
+        ControlAction::Shuffle => waywallen::toggle_shuffle(),
         ControlAction::Stop | ControlAction::Continue => {
             todo!("Waywallen playlist activation control is not implemented")
         }
