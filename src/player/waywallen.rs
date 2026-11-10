@@ -13,6 +13,10 @@ use prost::Message;
 use tungstenite::{client::client, Message as WebSocketMessage, WebSocket};
 use zbus::blocking::{Connection, Proxy};
 
+mod queue;
+
+pub use queue::{pause as pause_queue, resume as resume_queue};
+
 const DBUS_SERVICE: &str = "org.waywallen.waywallen.Daemon";
 const DBUS_PATH: &str = "/org/waywallen/waywallen/Daemon";
 const DBUS_INTERFACE: &str = "org.waywallen.waywallen.Daemon1";
@@ -258,13 +262,15 @@ impl WaywallenWebSocket {
 struct Request {
     #[prost(uint64, tag = "1")]
     request_id: u64,
-    #[prost(oneof = "request::Payload", tags = "75, 77")]
+    #[prost(oneof = "request::Payload", tags = "39, 75, 77")]
     payload: Option<request::Payload>,
 }
 
 mod request {
     #[derive(prost::Oneof)]
     pub enum Payload {
+        #[prost(message, tag = "39")]
+        PlaylistStatus(super::queue::PlaylistStatusRequest),
         #[prost(message, tag = "75")]
         GlobalPauseToggle(super::GlobalPauseToggleRequest),
         #[prost(message, tag = "77")]
@@ -300,6 +306,8 @@ struct Response {
     status: i32,
     #[prost(string, tag = "3")]
     message: String,
+    #[prost(message, optional, tag = "39")]
+    playlist_status: Option<queue::PlaylistStatusResponse>,
     #[prost(message, optional, tag = "75")]
     global_pause_toggle: Option<GlobalPauseToggleResponse>,
     #[prost(message, optional, tag = "77")]

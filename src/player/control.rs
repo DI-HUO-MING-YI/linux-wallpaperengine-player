@@ -33,8 +33,7 @@ pub fn control(action: Option<&str>) -> Result<()> {
         ControlAction::OpenUi => waywallen::open_ui(),
         ControlAction::Mute => waywallen::toggle_mute(),
         ControlAction::Shuffle => waywallen::toggle_shuffle(),
-        ControlAction::Stop | ControlAction::Continue => {
-            todo!("Waywallen playlist activation control is not implemented")
-        }
+        ControlAction::Stop => waywallen::pause_queue(),
+        ControlAction::Continue => waywallen::resume_queue(),
     }
 }

@@ -112,14 +112,14 @@ fn register_command() -> clap::ArgMatches {
                         .long("stop")
                         .short('s')
                         .action(clap::ArgAction::SetTrue)
-                        .help("Stop playlist rotation (not implemented)"),
+                        .help("Pause global queue rotation"),
                 )
                 .arg(
                     Arg::new("continue")
                         .long("continue")
                         .short('c')
                         .action(clap::ArgAction::SetTrue)
-                        .help("Continue playlist rotation (not implemented)"),
+                        .help("Resume global queue rotation and advance to the next wallpaper"),
                 )
                 .arg(
                     Arg::new("pause")

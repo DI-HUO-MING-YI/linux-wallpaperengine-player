@@ -33,6 +33,8 @@ linux-wallpaperengine-player control --prev
 linux-wallpaperengine-player control --pause
 linux-wallpaperengine-player control --mute
 linux-wallpaperengine-player control --shuffle
+linux-wallpaperengine-player control --stop
+linux-wallpaperengine-player control --continue
 linux-wallpaperengine-player control --reload
 linux-wallpaperengine-player control --open-ui
 ```
@@ -45,7 +47,7 @@ linux-wallpaperengine-player control --open-ui
 
 `--shuffle` toggles the global queue between shuffle and sequential modes and persists the selected mode.
 
-The `--stop` and `--continue` arguments are reserved for future playlist activation controls and currently have no implementation.
+`--stop` pauses global queue rotation without pausing the current wallpaper. `--continue` restores the saved interval and immediately advances to the next wallpaper. These commands do nothing when the global queue is empty, a named playlist is active, or there is no matching pause state.
 
 ## SDDM and wallock
 
