@@ -10,7 +10,7 @@ use super::{
     wallpaperengine::is_video_wallpaper,
 };
 
-pub fn wallock(app_config: &mut AppConfig, folder_name: &str) {
+pub fn wallock(app_config: &AppConfig, folder_name: &str) {
     let wallpapers_dir = &app_config.general.wallpapers_dir;
     let wallpapers_dir = Path::new(&wallpapers_dir);
     let wallpaperengine_config_file = app_config.general.wallpaperengine_config_file.clone();
@@ -53,7 +53,6 @@ pub fn wallock(app_config: &mut AppConfig, folder_name: &str) {
                         target_path.join(&wallpaper_file_name),
                     )
                     .expect("Can not create link to wallpaper path!");
-                    app_config.save_pre_walllock_wallpaper(wallpaper_id);
                     return;
                 }
             }

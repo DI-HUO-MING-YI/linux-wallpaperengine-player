@@ -17,17 +17,17 @@ pub fn run() {
     let matches = register_command();
 
     let config_path = matches.get_one::<String>("config");
-    let mut app_config = AppConfig::get_app_config(config_path);
+    let app_config = AppConfig::get_app_config(config_path);
 
     let log_file = app_config.general.log_file.as_ref();
     setup_logging(&log_file);
 
     if let Some(sddm_matches) = matches.subcommand_matches("sddm") {
         let folder_name = sddm_matches.get_one::<String>("folder").unwrap();
-        sddm(&mut app_config, folder_name);
+        sddm(&app_config, folder_name);
     } else if let Some(wallock_matches) = matches.subcommand_matches("wallock") {
         let folder_name = wallock_matches.get_one::<String>("folder").unwrap();
-        wallock(&mut app_config, folder_name);
+        wallock(&app_config, folder_name);
     } else if let Some(congtrol_matches) = matches.subcommand_matches("control") {
         let action = if congtrol_matches.get_flag("next") {
             Some("Next")

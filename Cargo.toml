@@ -10,10 +10,8 @@ serde = { version = "1.0.213", features = ["derive"] }
 serde_json = "1.0.132"
 rand = "0.8.5"
 config = "0.14.1"
-toml = "0.8.19"
 fern = "0.7.0"
 chrono = "0.4.38"
-regex = "1.11.1"
 strum = "0.26.3"
 strum_macros = "0.26.4"
 rusqlite = { version = "0.30.0", features = ["bundled"] }

@@ -10,7 +10,7 @@ use super::{
     wallpaperengine::{get_wallpaper_file, is_video_wallpaper},
 };
 
-pub fn sddm(app_config: &mut AppConfig, folder_name: &String) {
+pub fn sddm(app_config: &AppConfig, folder_name: &String) {
     let wallpapers_dir = &app_config.general.wallpapers_dir;
     let wallpapers_dir = Path::new(&wallpapers_dir);
     let wallpaperengine_config_file = app_config.general.wallpaperengine_config_file.clone();
@@ -40,7 +40,6 @@ pub fn sddm(app_config: &mut AppConfig, folder_name: &String) {
                     let target_path = Path::new(&app_config.sddm.target_path);
 
                     fs::copy(&wallpaper_file, target_path).expect("Can not copy to sddm path!");
-                    app_config.save_pre_sddm_wallpaper(wallpaper_id);
                     return;
                 }
             }
