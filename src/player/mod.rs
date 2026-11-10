@@ -1,22 +1,17 @@
-mod check;
 mod config;
 mod control;
-mod play;
 mod sddm;
 mod wallock;
 mod wallpaperengine;
-mod watch;
+mod waywallen;
 
-use check::check;
 use clap::{Arg, ArgGroup, Command};
 use config::app_config::AppConfig;
 use config::played_history::PlayedHistory;
 use control::control;
 use fern::Dispatch;
-use play::play;
 use sddm::sddm;
 use wallock::wallock;
-use watch::watch;
 
 pub fn run() {
     let matches = register_command();
@@ -27,15 +22,7 @@ pub fn run() {
     let log_file = app_config.general.log_file.as_ref();
     setup_logging(&log_file);
 
-    if let Some(_) = matches.subcommand_matches("check") {
-        check(&app_config);
-    } else if let Some(play_matches) = matches.subcommand_matches("play") {
-        let playlist_name = play_matches.get_one::<String>("playlist").unwrap();
-        play(&mut app_config, playlist_name);
-    } else if let Some(watch_matches) = matches.subcommand_matches("watch") {
-        let profile_name = watch_matches.get_one::<String>("profile").unwrap();
-        watch(&app_config, profile_name);
-    } else if let Some(sddm_matches) = matches.subcommand_matches("sddm") {
+    if let Some(sddm_matches) = matches.subcommand_matches("sddm") {
         let folder_name = sddm_matches.get_one::<String>("folder").unwrap();
         sddm(&mut app_config, folder_name);
     } else if let Some(wallock_matches) = matches.subcommand_matches("wallock") {
@@ -52,10 +39,15 @@ pub fn run() {
             Some("Stop")
         } else if congtrol_matches.get_flag("continue") {
             Some("Continue")
+        } else if congtrol_matches.get_flag("pause") {
+            Some("Pause")
         } else {
             None
         };
-        control(action);
+        if let Err(error) = control(action) {
+            eprintln!("{error:#}");
+            std::process::exit(1);
+        }
     } else if let Some(export_matches) = matches.subcommand_matches("export") {
         let file_path = export_matches.get_one::<String>("file").unwrap();
         let history = PlayedHistory::new(&app_config.general.played_history_db.clone()).unwrap();
@@ -68,7 +60,7 @@ pub fn run() {
 }
 
 fn register_command() -> clap::ArgMatches {
-    Command::new("A script that either checks or plays a live wallpaper.")
+    Command::new("A script that plays and manages live wallpapers.")
         .arg(
             Arg::new("config")
                 .short('c')
@@ -76,32 +68,13 @@ fn register_command() -> clap::ArgMatches {
                 .required(false)
                 .help("Config file path"),
         )
-        .subcommand(Command::new("check").about("Execute check function"))
         .subcommand(
-            Command::new("sddm").about("Execute check function").arg(
+            Command::new("sddm").about("Set the SDDM wallpaper").arg(
                 Arg::new("folder")
                     .long("folder")
                     .value_parser(clap::value_parser!(String))
                     .required(true)
                     .help("Folder name from wallpaperengine"),
-            ),
-        )
-        .subcommand(
-            Command::new("play").about("Execute play function").arg(
-                Arg::new("playlist")
-                    .long("playlist")
-                    .value_parser(clap::value_parser!(String))
-                    .required(true)
-                    .help("Playlist name from wallpaperengine"),
-            ),
-        )
-        .subcommand(
-            Command::new("watch").about("Execute watch function").arg(
-                Arg::new("profile")
-                    .long("profile")
-                    .value_parser(clap::value_parser!(String))
-                    .required(true)
-                    .help("Profile name from wallpaperengine"),
             ),
         )
         .subcommand(
@@ -126,25 +99,31 @@ fn register_command() -> clap::ArgMatches {
                         .long("reload")
                         .short('r')
                         .action(clap::ArgAction::SetTrue)
-                        .help("Reload wallpaper in the currnt playlist"),
+                        .help("Restart Waywallen"),
                 )
                 .arg(
                     Arg::new("stop")
                         .long("stop")
                         .short('s')
                         .action(clap::ArgAction::SetTrue)
-                        .help("Stop wallpaper in the currnt playlist"),
+                        .help("Stop playlist rotation (not implemented)"),
                 )
                 .arg(
                     Arg::new("continue")
                         .long("continue")
                         .short('c')
                         .action(clap::ArgAction::SetTrue)
-                        .help("Continue wallpaper in the currnt playlist"),
+                        .help("Continue playlist rotation (not implemented)"),
+                )
+                .arg(
+                    Arg::new("pause")
+                        .long("pause")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Toggle pause for all Waywallen renderers"),
                 )
                 .group(
                     ArgGroup::new("actions")
-                        .args(["next", "prev", "reload", "stop", "continue"])
+                        .args(["next", "prev", "reload", "stop", "continue", "pause"])
                         .required(true),
                 ),
         )

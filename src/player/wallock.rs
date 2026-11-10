@@ -1,4 +1,4 @@
-use std::{fs, os, path::Path};
+use std::{fs, path::Path};
 
 use log::info;
 use rand::{seq::SliceRandom, thread_rng};
@@ -53,7 +53,7 @@ pub fn wallock(app_config: &mut AppConfig, folder_name: &str) {
                         target_path.join(&wallpaper_file_name),
                     )
                     .expect("Can not create link to wallpaper path!");
-                    app_config.save_pre_sddm_wallpaper(wallpaper_id);
+                    app_config.save_pre_walllock_wallpaper(wallpaper_id);
                     return;
                 }
             }
