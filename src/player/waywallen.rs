@@ -31,9 +31,21 @@ pub fn previous() -> Result<()> {
     call_without_arguments("Previous")
 }
 
+pub fn open_ui() -> Result<()> {
+    call_without_arguments("OpenUi")
+}
+
 pub fn toggle_pause() -> Result<()> {
     let paused = WaywallenWebSocket::connect()?.toggle_pause()?;
     println!("Waywallen paused: {paused}");
+    Ok(())
+}
+
+pub fn toggle_mute() -> Result<()> {
+    let mut websocket = WaywallenWebSocket::connect()?;
+    let muted = websocket.global_muted()?;
+    let muted = websocket.set_muted(!muted)?;
+    println!("Waywallen muted: {muted}");
     Ok(())
 }
 
@@ -166,6 +178,33 @@ impl WaywallenWebSocket {
             .context("Waywallen returned no pause state")
     }
 
+    fn global_muted(&mut self) -> Result<bool> {
+        loop {
+            match self.socket.read()? {
+                WebSocketMessage::Binary(data) => {
+                    let frame = ServerFrame::decode(data.as_ref())?;
+                    if let Some(status) = frame.event.and_then(|event| event.status_sync) {
+                        return Ok(status.global_muted);
+                    }
+                }
+                WebSocketMessage::Close(_) => {
+                    bail!("Waywallen closed the WebSocket before sending its status")
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn set_muted(&mut self, muted: bool) -> Result<bool> {
+        let response = self.call(request::Payload::GlobalMuteSet(GlobalMuteSetRequest {
+            muted,
+        }))?;
+        response
+            .global_mute_set
+            .map(|set| set.muted)
+            .context("Waywallen returned no mute state")
+    }
+
     fn call(&mut self, payload: request::Payload) -> Result<Response> {
         self.next_request_id += 1;
         let request_id = self.next_request_id;
@@ -208,7 +247,7 @@ impl WaywallenWebSocket {
 struct Request {
     #[prost(uint64, tag = "1")]
     request_id: u64,
-    #[prost(oneof = "request::Payload", tags = "75")]
+    #[prost(oneof = "request::Payload", tags = "75, 77")]
     payload: Option<request::Payload>,
 }
 
@@ -217,6 +256,8 @@ mod request {
     pub enum Payload {
         #[prost(message, tag = "75")]
         GlobalPauseToggle(super::GlobalPauseToggleRequest),
+        #[prost(message, tag = "77")]
+        GlobalMuteSet(super::GlobalMuteSetRequest),
     }
 }
 
@@ -224,6 +265,20 @@ mod request {
 struct ServerFrame {
     #[prost(message, optional, tag = "1")]
     response: Option<Response>,
+    #[prost(message, optional, tag = "2")]
+    event: Option<Event>,
+}
+
+#[derive(Message)]
+struct Event {
+    #[prost(message, optional, tag = "13")]
+    status_sync: Option<StatusSync>,
+}
+
+#[derive(Message)]
+struct StatusSync {
+    #[prost(bool, tag = "6")]
+    global_muted: bool,
 }
 
 #[derive(Message)]
@@ -236,6 +291,8 @@ struct Response {
     message: String,
     #[prost(message, optional, tag = "75")]
     global_pause_toggle: Option<GlobalPauseToggleResponse>,
+    #[prost(message, optional, tag = "77")]
+    global_mute_set: Option<GlobalMuteSetResponse>,
 }
 
 #[derive(Clone, Copy, Debug, prost::Enumeration)]
@@ -256,4 +313,16 @@ struct GlobalPauseToggleRequest {}
 struct GlobalPauseToggleResponse {
     #[prost(bool, tag = "1")]
     paused: bool,
+}
+
+#[derive(Message)]
+struct GlobalMuteSetRequest {
+    #[prost(bool, tag = "1")]
+    muted: bool,
+}
+
+#[derive(Message)]
+struct GlobalMuteSetResponse {
+    #[prost(bool, tag = "1")]
+    muted: bool,
 }

@@ -41,6 +41,10 @@ pub fn run() {
             Some("Continue")
         } else if congtrol_matches.get_flag("pause") {
             Some("Pause")
+        } else if congtrol_matches.get_flag("open-ui") {
+            Some("OpenUi")
+        } else if congtrol_matches.get_flag("mute") {
+            Some("Mute")
         } else {
             None
         };
@@ -121,9 +125,24 @@ fn register_command() -> clap::ArgMatches {
                         .action(clap::ArgAction::SetTrue)
                         .help("Toggle pause for all Waywallen renderers"),
                 )
+                .arg(
+                    Arg::new("open-ui")
+                        .long("open-ui")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Open the Waywallen UI"),
+                )
+                .arg(
+                    Arg::new("mute")
+                        .long("mute")
+                        .action(clap::ArgAction::SetTrue)
+                        .help("Toggle mute for all Waywallen renderers"),
+                )
                 .group(
                     ArgGroup::new("actions")
-                        .args(["next", "prev", "reload", "stop", "continue", "pause"])
+                        .args([
+                            "next", "prev", "reload", "stop", "continue", "pause", "open-ui",
+                            "mute",
+                        ])
                         .required(true),
                 ),
         )

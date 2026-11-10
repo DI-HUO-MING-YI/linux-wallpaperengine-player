@@ -31,14 +31,18 @@ cargo build --release
 linux-wallpaperengine-player control --next
 linux-wallpaperengine-player control --prev
 linux-wallpaperengine-player control --pause
+linux-wallpaperengine-player control --mute
 linux-wallpaperengine-player control --reload
+linux-wallpaperengine-player control --open-ui
 ```
 
 `--pause` toggles between paused and playing states.
 
 `--reload` performs a clean D-Bus shutdown, starts Waywallen with `--no-ui`, and waits for its D-Bus service and WebSocket port to become ready.
 
-The `--stop` and `--continue` arguments are reserved for future Waywallen playlist activation controls and currently have no implementation.
+`--mute` toggles between muted and unmuted states.
+
+The `--stop` and `--continue` arguments are reserved for future playlist activation controls and currently have no implementation.
 
 ## SDDM and wallock
 
