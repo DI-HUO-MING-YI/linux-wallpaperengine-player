@@ -8,7 +8,6 @@ A small CLI for controlling Waywallen and preparing Wallpaper Engine Workshop vi
 - Pause and resume Waywallen renderers.
 - Restart the Waywallen daemon with Reload.
 - Select a random Workshop video for SDDM or wallock.
-- Export existing wallpaper play history to CSV.
 
 ## Requirements
 
@@ -56,10 +55,4 @@ Both commands read Wallpaper Engine folders from the configured Workshop library
 ```bash
 linux-wallpaperengine-player --config config.toml sddm --folder picked
 linux-wallpaperengine-player --config config.toml wallock --folder picked
-```
-
-## Export play history
-
-```bash
-linux-wallpaperengine-player --config config.toml export --file history.csv
 ```

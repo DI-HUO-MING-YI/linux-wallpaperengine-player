@@ -7,7 +7,6 @@ mod waywallen;
 
 use clap::{Arg, ArgGroup, Command};
 use config::app_config::AppConfig;
-use config::played_history::PlayedHistory;
 use control::control;
 use fern::Dispatch;
 use sddm::sddm;
@@ -53,14 +52,6 @@ pub fn run() {
         if let Err(error) = control(action) {
             eprintln!("{error:#}");
             std::process::exit(1);
-        }
-    } else if let Some(export_matches) = matches.subcommand_matches("export") {
-        let file_path = export_matches.get_one::<String>("file").unwrap();
-        let history = PlayedHistory::new(&app_config.general.played_history_db.clone()).unwrap();
-        if let Err(e) = history.export_stats_to_csv(file_path) {
-            log::error!("导出播放历史失败: {}", e);
-        } else {
-            log::info!("成功导出播放历史到: {}", file_path);
         }
     }
 }
@@ -163,17 +154,6 @@ fn register_command() -> clap::ArgMatches {
                         .value_parser(clap::value_parser!(String))
                         .required(true)
                         .help("Folder name from wallpaperengine"),
-                ),
-        )
-        .subcommand(
-            Command::new("export")
-                .about("导出播放历史统计到CSV文件")
-                .arg(
-                    Arg::new("file")
-                        .long("file")
-                        .value_parser(clap::value_parser!(String))
-                        .required(true)
-                        .help("导出CSV文件的路径"),
                 ),
         )
         .subcommand_required(true)

@@ -25,7 +25,6 @@ pub struct GeneralConfig {
     pub log_file: Option<String>,
     pub wallpapers_dir: String,
     pub wallpaperengine_config_file: String,
-    pub played_history_db: String,
 }
 
 impl AppConfig {

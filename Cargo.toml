@@ -11,10 +11,8 @@ serde_json = "1.0.132"
 rand = "0.8.5"
 config = "0.14.1"
 fern = "0.7.0"
-chrono = "0.4.38"
 strum = "0.26.3"
 strum_macros = "0.26.4"
-rusqlite = { version = "0.30.0", features = ["bundled"] }
 anyhow = "1"
 prost = "0.13"
 tungstenite = { version = "0.26", default-features = false, features = ["handshake"] }

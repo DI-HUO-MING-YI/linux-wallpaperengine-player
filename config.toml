@@ -1,5 +1,4 @@
 [general]
-played_history_db = "/home/narcissus/Workspace/wallpaperengine/linux-wallpaperengine-player/played_history.db"
 log_file = "/home/narcissus/linux-wallpaperengine.log"
 wallpapers_dir = "/home/narcissus/.local/share/Steam/steamapps/workshop/content/431960/"
 wallpaperengine_config_file = "/home/narcissus/.local/share/Steam/steamapps/common/wallpaper_engine/config.json"
